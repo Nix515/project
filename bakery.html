@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Bakery - Luxury Artisan Bakery</title>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header>
+    <nav class="navbar">
+      <a href="#" class="logo">BAKERY</a>
+
+      <ul class="nav-links" id="navLinks">
+        <li><a href="#" class="active">Home</a></li>
+        <li><a href="#featured">Bakery</a></li>
+        <li><a href="#featured">Sweet Bakery</a></li>
+        <li><a href="#shopping">Assortment</a></li>
+        <li><a href="#shopping">Flours</a></li>
+        <li><a href="#contact">Contact</a></li>
+      </ul>
+
+      <div class="nav-actions">
+        <div class="cart-btn-wrap" id="openCartBtn">
+          <i class="fa-solid fa-basket-shopping"></i>
+          <span class="cart-badge" id="cartBadge">0</span>
+        </div>
+        <i class="fa-solid fa-bars mobile-toggle" id="menuToggle"></i>
+      </div>
+    </nav>
+  </header>
+
+  <!-- HERO SECTION -->
+  <section class="hero">
+    <div class="hero-content">
+      <div class="hero-subtitle">Handcrafted Daily</div>
+      <h1>FREE LUXURY BAKERY</h1>
+      <p>
+        Experience the finest freshly baked handcrafted artisan sourdoughs, pastries, and gourmet breads cooked with authentic traditional methods.
+      </p>
+      <div class="hero-btns">
+        <a href="#featured" class="btn btn-primary">Our Menu</a>
+        <a href="https://goo.go/maps/" class="btn btn-outline">Location</a>
+      </div>
+    </div>
+    <div class="hero-image-wrap">
+      <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=800&q=80" alt="Fresh Bakery Platter">
+    </div>
+  </section>
+
+  <!-- FEATURED BAKERY SECTION (3 CARDS) -->
+  <section class="featured-section" id="featured">
+    <div class="section-header">
+      <h2>Refined Bakery</h2>
+      <p>Smell the fresh aroma every morning</p>
+    </div>
+
+    <div class="featured-grid">
+      <!-- Item 1 -->
+      <div class="bakery-card">
+        <div class="bakery-card-img">
+          <img src="https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=600&q=80" alt="Fiesta Ring">
+        </div>
+        <h3>Fiesta Ring Bread</h3>
+        <p class="desc">Special traditional recipe</p>
+        <button class="card-btn" onclick="addToCart('b1', 'Fiesta Ring Bread', 'Special traditional recipe', 18000)">ADD UGX 18,000</button>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="bakery-card">
+        <div class="bakery-card-img">
+          <img src="https://images.unsplash.com/photo-1549931319-a545dcf3bc73?auto=format&fit=crop&w=600&q=80" alt="Honor Crown Bread">
+        </div>
+        <h3>Honor Crown Bread</h3>
+        <p class="desc">Soft golden yeast bread</p>
+        <button class="card-btn" onclick="addToCart('b2', 'Honor Crown Bread', 'Soft golden yeast bread', 20000)">ADD UGX 20,000</button>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="bakery-card">
+        <div class="bakery-card-img">
+          <img src="https://images.unsplash.com/photo-1555507036-ab1f4038808a?auto=format&fit=crop&w=600&q=80" alt="Crown Bagel Ring">
+        </div>
+        <h3>Crown Bagel Ring</h3>
+        <p class="desc">Crispy crust sourdough</p>
+        <button class="card-btn" onclick="addToCart('b3', 'Crown Bagel Ring', 'Crispy crust sourdough', 15000)">ADD UGX 15,000</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- OUR SHOPPING SECTION (4 CARDS) -->
+  <section class="shopping-section" id="shopping">
+    <div class="section-header">
+      <h2>Our Shopping</h2>
+      <p>Select your favorite bakery options below</p>
+    </div>
+
+    <div class="shopping-grid">
+      <!-- Item 1 -->
+      <div class="shop-card">
+        <div class="shop-card-img">
+          <img src="https://images.unsplash.com/photo-1589367920969-ab8e050bbb04?auto=format&fit=crop&w=500&q=80" alt="Sesame Donut">
+        </div>
+        <h4>Sesame Donut Ring</h4>
+        <div class="sub">Golden toasted</div>
+        <div class="shop-card-footer">
+          <span class="price-tag">UGX 10,000</span>
+          <button class="add-icon-btn" onclick="addToCart('s1', 'Sesame Donut Ring', 'Golden toasted', 10000)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+
+      <!-- Item 2 -->
+      <div class="shop-card">
+        <div class="shop-card-img">
+          <img src="https://images.unsplash.com/photo-1608198093002-ad4e005484ec?auto=format&fit=crop&w=500&q=80" alt="Country Oat Loaf">
+        </div>
+        <h4>Country Oat Bun</h4>
+        <div class="sub">Whole wheat oat</div>
+        <div class="shop-card-footer">
+          <span class="price-tag">UGX 8,000</span>
+          <button class="add-icon-btn" onclick="addToCart('s2', 'Country Oat Bun', 'Whole wheat oat', 8000)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+
+      <!-- Item 3 -->
+      <div class="shop-card">
+        <div class="shop-card-img">
+          <img src="https://images.unsplash.com/photo-1509440159596-0249088772ff?auto=format&fit=crop&w=500&q=80" alt="Cinnamon Brioche">
+        </div>
+        <h4>Cinnamon Brioche</h4>
+        <div class="sub">Rich butter dough</div>
+        <div class="shop-card-footer">
+          <span class="price-tag">UGX 13,000</span>
+          <button class="add-icon-btn" onclick="addToCart('s3', 'Cinnamon Brioche', 'Rich butter dough', 13000)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+
+      <!-- Item 4 -->
+      <div class="shop-card">
+        <div class="shop-card-img">
+          <img src="https://images.unsplash.com/photo-1586444248902-2f64eddc13df?auto=format&fit=crop&w=500&q=80" alt="Artisan Baguette">
+        </div>
+        <h4>Artisan Baguette</h4>
+        <div class="sub">Crispy French style</div>
+        <div class="shop-card-footer">
+          <span class="price-tag">UGX 11,000</span>
+          <button class="add-icon-btn" onclick="addToCart('s4', 'Artisan Baguette', 'Crispy French style', 11000)"><i class="fa-solid fa-plus"></i></button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CART SLIDE-OVER DRAWER -->
+  <div class="cart-drawer" id="cartDrawer">
+    <div class="cart-header">
+      <h3>Your Bakery Basket</h3>
+      <span class="close-cart" id="closeCartBtn">&times;</span>
+    </div>
+    <div class="cart-body" id="cartBody">
+      <p style="text-align: center; color: #888; margin-top: 40px;">Your cart is currently empty.</p>
+    </div>
+    <div class="cart-footer">
+      <div class="total-row">
+        <span>Total:</span>
+        <span id="cartTotalPrice">UGX 0</span>
+      </div>
+      <button class="btn-whatsapp" id="submitWhatsappBtn">
+        <i class="fa-brands fa-whatsapp"></i> Submit Order via WhatsApp
+      </button>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer id="contact">
+    <div class="footer-cols">
+     
+
+    
+
+    
+
+      <div class="footer-col">
+        <h4>Contact Us</h4>
+        <ul>
+          <li><a href="tel:0730519236">Phone: +256 7519226</a></li>
+          <li><a href="https://goo.go/maps/">Location: Bakery Street</a></li>
+          <li><a href="#">Hours: 07:00 AM - 09:00 PM</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+    
+    </div>
+  </footer>
+
+
+
+  <!-- TOAST MESSAGE -->
+  <div class="toast" id="toastMsg">Added to cart!</div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    const RESTAURANT_PHONE = "256730519236";
+    let cart = {};
+
+    // Mobile Navbar Toggle
+    const menuToggle = document.getElementById('menuToggle');
+    const navLinks = document.getElementById('navLinks');
+
+    menuToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('show');
+    });
+
+    // Cart Drawer Controls
+    const openCartBtn = document.getElementById('openCartBtn');
+    const closeCartBtn = document.getElementById('closeCartBtn');
+    const cartDrawer = document.getElementById('cartDrawer');
+
+    openCartBtn.addEventListener('click', () => cartDrawer.classList.add('open'));
+    closeCartBtn.addEventListener('click', () => cartDrawer.classList.remove('open'));
+
+    // Cart Functions
+    function addToCart(id, name, desc, price) {
+      if (cart[id]) {
+        cart[id].quantity += 1;
+      } else {
+        cart[id] = { id, name, desc, price, quantity: 1 };
+      }
+      updateCartUI();
+      showToast(`${name} added to basket!`);
+    }
+
+    function modifyQty(id, change) {
+      if (cart[id]) {
+        cart[id].quantity += change;
+        if (cart[id].quantity <= 0) {
+          delete cart[id];
+        }
+      }
+      updateCartUI();
+    }
+
+    function updateCartUI() {
+      const cartBody = document.getElementById('cartBody');
+      const cartBadge = document.getElementById('cartBadge');
+      const cartTotalPrice = document.getElementById('cartTotalPrice');
+
+      let totalItems = 0;
+      let grandTotal = 0;
+      cartBody.innerHTML = '';
+
+      const keys = Object.keys(cart);
+      if (keys.length === 0) {
+        cartBody.innerHTML = '<p style="text-align: center; color: #888; margin-top: 40px;">Your cart is currently empty.</p>';
+      } else {
+        keys.forEach((key, index) => {
+          const item = cart[key];
+          totalItems += item.quantity;
+          const subtotal = item.price * item.quantity;
+          grandTotal += subtotal;
+
+          const itemHTML = `
+            <div class="cart-item">
+              <div class="cart-item-info">
+                <h5>${index + 1}. ${item.name}</h5>
+                <p>${item.desc}</p>
+                <div class="qty-wrap">
+                  <button class="qty-btn" onclick="modifyQty('${item.id}', -1)">-</button>
+                  <span style="font-size:0.85rem; color:#333; font-weight:600;">${item.quantity}</span>
+                  <button class="qty-btn" onclick="modifyQty('${item.id}', 1)">+</button>
+                </div>
+              </div>
+              <div class="cart-item-price">UGX ${subtotal.toLocaleString()}</div>
+            </div>
+          `;
+          cartBody.insertAdjacentHTML('beforeend', itemHTML);
+        });
+      }
+
+      cartBadge.textContent = totalItems;
+      cartTotalPrice.textContent = `UGX ${grandTotal.toLocaleString()}`;
+    }
+
+    // WhatsApp Submission
+    document.getElementById('submitWhatsappBtn').addEventListener('click', () => {
+      const keys = Object.keys(cart);
+      if (keys.length === 0) {
+        showToast('Your basket is empty!');
+        return;
+      }
+
+      let message = `Hello BAKERY! 🥖\nI would like to place an order:\n\n`;
+      let total = 0;
+
+      keys.forEach((key, index) => {
+        const item = cart[key];
+        const subtotal = item.price * item.quantity;
+        total += subtotal;
+        message += `${index + 1}. ${item.name}\n   - Details: ${item.desc}\n   - Quantity: ${item.quantity}\n   - Price: UGX ${item.price.toLocaleString()} each (UGX ${subtotal.toLocaleString()} subtotal)\n\n`;
+      });
+
+      message += `💰 Grand Total: UGX ${total.toLocaleString()}\n\nPlease confirm my bakery order!`;
+
+      const encodedMessage = encodeURIComponent(message);
+      window.location.href = `https://wa.me/${RESTAURANT_PHONE}?text=${encodedMessage}`;
+    });
+
+    // Toast Notification
+    function showToast(msg) {
+      const toast = document.getElementById('toastMsg');
+      toast.textContent = msg;
+      toast.style.display = 'block';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+  </script>
+</body>
+</html>
+
+  <style>
+    /* Reset & CSS Variables */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #ffffff; /* Changed body to white */
+      color: #333333;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    :root {
+      --accent-color: #d86828;
+      --accent-hover: #b8521d;
+      --card-bg: #ffffff;
+      --text-gold: #c27d28;
+    }
+
+    /* Navbar */
+    header {
+      padding: 20px 8%;
+      background: #ffffff;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-family: 'Cinzel', serif;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: var(--accent-color);
+      letter-spacing: 2px;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      gap: 25px;
+      align-items: center;
+    }
+
+    .nav-links a {
+      color: #555555;
+      text-decoration: none;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+      transition: color 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-links a:hover, .nav-links a.active {
+      color: var(--accent-color);
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .cart-btn-wrap {
+      position: relative;
+      cursor: pointer;
+      color: #222;
+      font-size: 1.2rem;
+      padding: 8px;
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: 0;
+      right: -5px;
+      background-color: var(--accent-color);
+      color: white;
+      font-size: 0.65rem;
+      font-weight: bold;
+      border-radius: 50%;
+      padding: 2px 6px;
+    }
+
+    .mobile-toggle {
+      display: none;
+      font-size: 1.3rem;
+      color: #222;
+      cursor: pointer;
+    }
+
+    /* Hero Section */
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 60px 8% 80px 8%;
+      gap: 40px;
+      background-color: aliceblue; /* Section background set to aliceblue */
+      border-radius: 15px;
+      margin: 20px 8%;
+    }
+
+    .hero-content {
+      max-width: 480px;
+    }
+
+    .hero-subtitle {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 3px;
+      color: var(--accent-color);
+      margin-bottom: 10px;
+      font-weight: 600;
+    }
+
+    .hero-content h1 {
+      font-family: 'Cinzel', serif;
+      font-size: 3.2rem;
+      line-height: 1.15;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+      font-weight: 700;
+    }
+
+    .hero-content p {
+      font-size: 0.88rem;
+      color: #555555;
+      line-height: 1.7;
+      margin-bottom: 30px;
+    }
+
+    .hero-btns {
+      display: flex;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 12px 28px;
+      border-radius: 15px; /* Border radius 15px */
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      display: inline-block;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .btn-primary {
+      background-color: var(--accent-color);
+      color: #fff;
+      border: 1px solid var(--accent-color);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--accent-hover);
+    }
+
+    .btn-outline {
+      background: transparent;
+      color: #333;
+      border: 1px solid #ccc;
+    }
+
+    .btn-outline:hover {
+      border-color: #888;
+      background-color: #ffffff;
+    }
+
+    .hero-image-wrap {
+      position: relative;
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    .hero-image-wrap img {
+      width: 100%;
+      max-width: 520px;
+      border-radius: 15px; /* Border radius 15px */
+      box-shadow: 0 15px 30px rgba(0,0,0,0.1);
+    }
+
+    /* Section Headers */
+    .section-header {
+      text-align: center;
+      margin-bottom: 40px;
+    }
+
+    .section-header h2 {
+      font-family: 'Cinzel', serif;
+      font-size: 2.2rem;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    .section-header p {
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    /* Featured Bakery Section */
+    .featured-section {
+      padding: 60px 8%;
+      background-color: aliceblue; /* Section background set to aliceblue */
+      border-radius: 15px;
+      margin: 30px 8%;
+    }
+
+    .featured-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 30px;
+    }
+
+    .bakery-card {
+      background: var(--card-bg);
+      border-radius: 15px; /* Border radius 15px */
+      padding: 25px 20px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border: 1px solid #e3edf7;
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .bakery-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 25px rgba(0,0,0,0.1);
+    }
+
+    /* Increased width and height for featured food images */
+    .bakery-card-img {
+      width: 240px;
+      height: 220px;
+      margin: 0 auto 20px auto;
+      border-radius: 15px; /* Border radius 15px */
+      overflow: hidden;
+    }
+
+    .bakery-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 15px; /* Border radius 15px */
+    }
+
+    .bakery-card h3 {
+      font-size: 1.1rem;
+      color: #111;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .bakery-card .desc {
+      font-size: 0.78rem;
+      color: #777;
+      margin-bottom: 20px;
+    }
+
+    .card-btn {
+      background-color: var(--accent-color);
+      color: #fff;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 15px; /* Border radius 15px */
+      font-size: 0.8rem;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+
+    .card-btn:hover {
+      background-color: var(--accent-hover);
+    }
+
+    /* Our Shopping Section */
+    .shopping-section {
+      padding: 60px 8%;
+      background-color: aliceblue; /* Section background set to aliceblue */
+      border-radius: 15px;
+      margin: 30px 8%;
+    }
+
+    .shopping-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 25px;
+    }
+
+    .shop-card {
+      background: var(--card-bg);
+      border-radius: 15px; /* Border radius 15px */
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.05);
+      border: 1px solid #e3edf7;
+      transition: transform 0.3s;
+    }
+
+    .shop-card:hover {
+      transform: translateY(-5px);
+    }
+
+    /* Increased width and height for food ordering items */
+    .shop-card-img {
+      width: 180px;
+      height: 160px;
+      margin: 0 auto 15px auto;
+      border-radius: 15px; /* Border radius 15px */
+      overflow: hidden;
+    }
+
+    .shop-card-img img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 15px; /* Border radius 15px */
+    }
+
+    .shop-card h4 {
+      font-size: 0.95rem;
+      color: #111;
+      margin-bottom: 5px;
+    }
+
+    .shop-card .sub {
+      font-size: 0.72rem;
+      color: #666;
+      margin-bottom: 12px;
+    }
+
+    .shop-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+      padding-top: 10px;
+      border-top: 1px solid #eee;
+    }
+
+    .price-tag {
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: var(--text-gold);
+    }
+
+    .add-icon-btn {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      transition: background 0.2s;
+    }
+
+    .add-icon-btn:hover {
+      background: var(--accent-hover);
+    }
+
+    /* Cart Drawer Slide-Over */
+    .cart-drawer {
+      position: fixed;
+      top: 0;
+      right: -380px;
+      width: 360px;
+      max-width: 100%;
+      height: 100%;
+      background: #ffffff;
+      box-shadow: -5px 0 25px rgba(0,0,0,0.15);
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      padding: 25px;
+      transition: right 0.3s ease;
+      border-left: 1px solid #eee;
+    }
+
+    .cart-drawer.open {
+      right: 0;
+    }
+
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 15px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .cart-header h3 {
+      font-family: 'Cinzel', serif;
+      font-size: 1.1rem;
+      color: #1a1a1a;
+    }
+
+    .close-cart {
+      font-size: 1.4rem;
+      color: #888;
+      cursor: pointer;
+    }
+
+    .cart-body {
+      flex: 1;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed #ddd;
+    }
+
+    .cart-item-info h5 {
+      font-size: 0.88rem;
+      color: #222;
+    }
+
+    .cart-item-info p {
+      font-size: 0.72rem;
+      color: #777;
+    }
+
+    .qty-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 5px;
+    }
+
+    .qty-btn {
+      background: #f0f0f0;
+      color: #333;
+      border: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.75rem;
+    }
+
+    .qty-btn:hover {
+      background: var(--accent-color);
+      color: #fff;
+    }
+
+    .cart-item-price {
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-gold);
+    }
+
+    .cart-footer {
+      border-top: 1px solid #eee;
+      padding-top: 15px;
+    }
+
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+    }
+
+    .btn-whatsapp {
+      background-color: #25D366;
+      color: white;
+      width: 100%;
+      padding: 12px;
+      border-radius: 15px; /* Border radius 15px */
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.88rem;
+      transition: background 0.3s;
+    }
+
+    .btn-whatsapp:hover {
+      background-color: #1eb855;
+    }
+
+    /* Footer */
+    footer {
+      background-color: aliceblue; /* Footer set to aliceblue */
+      padding: 50px 8% 20px 8%;
+      border-top: 1px solid #e3edf7;
+      border-radius: 15px;
+      margin: 30px 8% 10px 8%;
+    }
+
+    .footer-cols {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .footer-col h4 {
+      font-size: 0.95rem;
+      color: #111;
+      margin-bottom: 15px;
+    }
+
+    .footer-col ul {
+      list-style: none;
+    }
+
+    .footer-col ul li {
+      margin-bottom: 8px;
+    }
+
+    .footer-col ul li a {
+      color: #666;
+      font-size: 0.8rem;
+      text-decoration: none;
+      transition: color 0.3s;
+    }
+
+    .footer-col ul li a:hover {
+      color: var(--accent-color);
+    }
+
+    .footer-bottom {
+      text-align: center;
+      font-size: 0.75rem;
+      color: #777;
+      padding-top: 20px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    /* Toast */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: var(--accent-color);
+      color: #fff;
+      padding: 10px 18px;
+      border-radius: 15px; /* Border radius 15px */
+      font-size: 0.8rem;
+      display: none;
+      z-index: 200;
+    }
+
+    /* Responsive */
+    @media (max-width: 868px) {
+      .hero, .featured-section, .shopping-section, footer {
+        margin: 15px 4%;
+      }
+
+      .hero {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .hero-btns {
+        justify-content: center;
+      }
+
+      .mobile-toggle {
+        display: block;
+      }
+
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        flex-direction: column;
+        padding: 20px;
+        border-bottom: 1px solid #eee;
+      }
+
+      .nav-links.show {
+        display: flex;
+      }
+    }
+  </style>

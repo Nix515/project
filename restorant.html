@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>flavorfeed- Restaurant</title>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+  </head>
+<body>
+
+  <!-- Navigation Header -->
+  <header class="navbar">
+    <div class="logo">FLAVOR<span>FEED</span></div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="#hero" class="active">HOME</a></li>
+        <li><a href="#top-list">MENU</a></li>
+       
+        <li class="cart-icon" id="cart-btn">
+          <i class="fa-solid fa-basket-shopping"></i>
+          <span class="cart-badge" id="cart-count">0</span>
+        </li>
+        
+      </ul>
+    </nav>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero" id="hero">
+    <div class="hero-content">
+      <h1>Delicious Food Is<br>Waiting For You</h1>
+      <p>
+        Our team of registered waiter and skilled healthcare professional chefs are ready to make you feel at home
+      </p>
+      <div class="hero-buttons">
+        <a href="#top-list" class="btn btn-primary">Food Menu</a>
+        <button class="btn btn-secondary" id="open-modal-btn">Book a Table</button>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80" alt="Delicious Noodle Bowl">
+    </div>
+  </section>
+
+  <!-- Top List Section -->
+  <section class="top-list" id="top-list">
+    <div class="section-title">
+      <h2>Top List</h2>
+      <p>Our mainstay menu</p>
+    </div>
+
+    <div class="cards-container">
+      <!-- Card 1 -->
+      <div class="card" data-id="1">
+        <div class="card-img-wrapper">
+          <img src="https://images.unsplash.com/photo-1569718212165-3a8278d5f624?auto=format&fit=crop&w=400&q=80" alt="Noodles Three">
+        </div>
+        <div class="card-body">
+          <div class="rating"><i class="fa-soli fa-sta"></i> </div>
+          <h3>Noodles three</h3>
+          <p>White plate with dried shrimps</p>
+          <div class="card-footer">
+            <span class="price">UGX 45,000</span>
+            <div class="action-box">
+              <button class="add-btn" data-id="1" data-name="Noodles three" data-desc="White plate with dried shrimps" data-price="45000">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 (Featured) -->
+      <div class="card card-featured" data-id="2">
+        <div class="card-img-wrapper">
+          <img src="https://images.unsplash.com/photo-1555126634-323283e090fa?auto=format&fit=crop&w=400&q=80" alt="Noodles One">
+        </div>
+        <div class="card-body">
+          <div class="ratin"><i class="fa-solid fa-star"></i> </div>
+          <h3>Noodles one</h3>
+          <p>Noodles spicy boil with seafood and pork in hot pot</p>
+          <div class="card-footer">
+            <span class="price">UGX 75,000</span>
+            <div class="action-box">
+              <button class="add-btn" data-id="2" data-name="Noodles one" data-desc="Noodles spicy boil with seafood and pork" data-price="75000">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="card" data-id="3">
+        <div class="card-img-wrapper">
+          <img src="https://images.unsplash.com/photo-1612927601601-6638404737ce?auto=format&fit=crop&w=400&q=80" alt="Noodles Two">
+        </div>
+        <div class="card-body">
+          <div class="ratig"><i class="f-solid fa-sta"></i></div>
+          <h3>Noodles two</h3>
+          <p>Noodles prawn spicy soup</p>
+          <div class="card-footer">
+            <span class="price">UGX 60,000</span>
+            <div class="action-box">
+              <button class="add-btn" data-id="3" data-name="Noodles two" data-desc="Noodles prawn spicy soup" data-price="60000">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  
+
+  <!-- Our Services Section -->
+  <section class="services-section">
+    <h2>Our services</h2>
+    <div class="services-grid">
+      <div class="service-item">
+        <i class="fa-solid fa-mobile-screen-button"></i>
+        <span><a href="tel:0730519236">+256730519236</a></span>
+      </div>
+      
+      
+      <div class="service-item">
+        <i class="fa-solid fa-truck-fast"></i>
+        <span><a href="https://goo.go/maps/">Location</a></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Booking Modal -->
+  <div class="modal" id="booking-modal">
+    <div class="modal-content">
+      <span class="close-btn" id="close-modal-btn">&times;</span>
+      <h3>Book a Table</h3>
+      <form id="booking-form">
+        <input type="text" id="cust-name" placeholder="Your Name" required>
+        <input type="tel" id="cust-phone" placeholder="Your Phone Number" required>
+        <input type="number" id="cust-guests" placeholder="Number of Guests" min="1" required>
+        <input type="date" id="cust-date" required>
+        <input type="time" id="cust-time" required>
+        <button type="submit" class="btn btn-whatsapp">
+          <i class="fa-brands fa-whatsapp"></i> Book via WhatsApp
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Cart Drawer -->
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h3>Your Food Basket</h3>
+      <span class="close-btn" id="close-cart-btn">&times;</span>
+    </div>
+    <div class="cart-items-list" id="cart-items-list">
+      <p style="text-align: center; color: #888; margin-top: 40px;">Your cart is currently empty.</p>
+    </div>
+    <div class="cart-total">
+      <span>Total Price:</span>
+      <span id="cart-total-price">UGX 0</span>
+    </div>
+    <button class="btn-whatsapp" id="send-order-whatsapp">
+      <i class="fa-brands fa-whatsapp"></i> Submit Order via WhatsApp
+    </button>
+  </div>
+
+  <!-- Notification Toast -->
+  <div class="toast" id="toast">Item added to cart!</div>
+
+
+  <style>
+    /* Base Reset & Variables */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(180deg, #d3cfbe 0%, #e2bf98 35%, #ca8852 100%);
+      color: #2b2b2b;
+      min-height: 100vh;
+      padding: 20px 8%;
+    }
+
+    /* Navbar */
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+    }
+
+    .logo {
+      font-weight: 700;
+      font-size: 1.4rem;
+      letter-spacing: 1px;
+      color: #ca6e2b;
+    }
+
+    .logo span {
+      color: #724e2d;
+    }
+
+    .nav-links {
+      display: flex;
+      list-style: none;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .nav-links a {
+      text-decoration: none;
+      color: #333;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .nav-links a.active {
+      border-bottom: 2px solid #ca6e2b;
+      padding-bottom: 2px;
+    }
+
+    .cart-icon {
+      position: relative;
+      cursor: pointer;
+      font-size: 1.2rem;
+      color: #333;
+      background: rgba(255, 255, 255, 0.4);
+      padding: 8px 12px;
+      border-radius: 20px;
+      transition: background 0.2s;
+    }
+
+    .cart-icon:hover {
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .cart-badge {
+      position: absolute;
+      top: -5px;
+      right: -5px;
+      background-color: #ca6e2b;
+      color: white;
+      border-radius: 50%;
+      padding: 2px 6px;
+      font-size: 0.65rem;
+      font-weight: bold;
+    }
+
+    .user-profile {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+
+    .user-profile img {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      object-fit: cover;
+    }
+
+    .user-profile i {
+      font-size: 0.7rem;
+      color: #555;
+    }
+
+    /* Hero Section */
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 40px 0;
+      gap: 20px;
+    }
+
+    .hero-content {
+      max-width: 450px;
+    }
+
+    .hero-content h1 {
+      font-size: 2.5rem;
+      line-height: 1.2;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+    }
+
+    .hero-content p {
+      font-size: 0.9rem;
+      color: #4a4a4a;
+      line-height: 1.6;
+      margin-bottom: 30px;
+    }
+
+    .hero-buttons {
+      display: flex;
+      gap: 15px;
+    }
+
+    .btn {
+      padding: 10px 24px;
+      border-radius: 20px;
+      border: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-primary {
+      background-color: #d19261;
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .btn-secondary {
+      background-color: rgba(255, 255, 255, 0.4);
+      color: #fff;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .hero-image {
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.2);
+    }
+
+    .hero-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* Top List Section */
+    .top-list {
+      padding: 60px 0;
+      text-align: center;
+    }
+
+    .section-title h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #1a1a1a;
+    }
+
+    .section-title p {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 40px;
+    }
+
+    .cards-container {
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 25px;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.35);
+      backdrop-filter: blur(10px);
+      border-radius: 25px;
+      padding: 20px;
+      width: 250px;
+      text-align: left;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      position: relative;
+    }
+
+    .card-featured {
+      background: rgba(255, 255, 255, 0.5);
+      transform: translateY(-15px);
+    }
+
+    .card-img-wrapper {
+      width: 140px;
+      height: 140px;
+      margin: -50px auto 15px auto;
+      border-radius: 50%;
+      overflow: hidden;
+      box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-img-wrapper img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .rating {
+      font-size: 0.8rem;
+      color: #ffb400;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .card h3 {
+      font-size: 1.05rem;
+      color: #1a1a1a;
+      margin-bottom: 5px;
+    }
+
+    .card p {
+      font-size: 0.75rem;
+      color: #555;
+      line-height: 1.4;
+      margin-bottom: 15px;
+      min-height: 32px;
+    }
+
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .price {
+      font-weight: 700;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+    }
+
+    .add-btn {
+      background-color: #b8622c;
+      color: #fff;
+      border: none;
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.75rem;
+      transition: transform 0.2s ease;
+    }
+
+    .add-btn:active {
+      transform: scale(0.85);
+    }
+
+    /* Quantity Controller on Card */
+    .quantity-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .quantity-btn {
+      background-color: #b8622c;
+      color: #fff;
+      border: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 0.7rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .quantity-num {
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    /* French Fries Section */
+    .french-fries-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 50px 0;
+      gap: 40px;
+    }
+
+    .fries-image {
+      flex: 1;
+    }
+
+    .fries-image img {
+      width: 100%;
+      max-width: 480px;
+      filter: drop-shadow(0px 15px 15px rgba(0, 0, 0, 0.2));
+    }
+
+    .fries-content {
+      flex: 1;
+      max-width: 420px;
+    }
+
+    .fries-content h2 {
+      font-size: 2rem;
+      line-height: 1.25;
+      color: #1a1a1a;
+      margin-bottom: 20px;
+    }
+
+    .fries-content p {
+      font-size: 0.85rem;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    /* Services Section */
+    .services-section {
+      text-align: center;
+      padding: 40px 0 20px 0;
+    }
+
+    .services-section h2 {
+      font-size: 1.5rem;
+      margin-bottom: 30px;
+      color: #1a1a1a;
+    }
+
+    .services-grid {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+
+    .service-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.85rem;
+      color: #2b2b2b;
+      font-weight: 500;
+    }
+
+    .service-item i {
+      font-size: 1.1rem;
+    }
+
+    /* Modal & Slide Cart Styling */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+
+    .modal-content {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      width: 320px;
+      position: relative;
+      text-align: center;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .modal-content form input {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font-family: inherit;
+    }
+
+    /* Cart Drawer / Modal */
+    .cart-drawer {
+      display: none;
+      position: fixed;
+      top: 0;
+      right: 0;
+      width: 360px;
+      max-width: 100%;
+      height: 100%;
+      background: #fff;
+      box-shadow: -5px 0 15px rgba(0,0,0,0.2);
+      z-index: 101;
+      flex-direction: column;
+      padding: 25px;
+    }
+
+    .cart-drawer.open {
+      display: flex;
+    }
+
+    .cart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 15px;
+    }
+
+    .cart-items-list {
+      flex: 1;
+      overflow-y: auto;
+      margin: 20px 0;
+    }
+
+    .cart-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      border-bottom: 1px dashed #ddd;
+      padding-bottom: 10px;
+    }
+
+    .cart-item-details h4 {
+      font-size: 0.9rem;
+      color: #333;
+    }
+
+    .cart-item-details p {
+      font-size: 0.75rem;
+      color: #777;
+    }
+
+    .cart-item-price {
+      font-size: 0.85rem;
+      font-weight: bold;
+      color: #b8622c;
+    }
+
+    .cart-total {
+      font-size: 1.1rem;
+      font-weight: bold;
+      display: flex;
+      justify-content: space-between;
+      padding: 15px 0;
+      border-top: 2px solid #eee;
+    }
+
+    .btn-whatsapp {
+      background-color: #25D366;
+      color: white;
+      width: 100%;
+      padding: 12px;
+      border-radius: 8px;
+      border: none;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .btn-whatsapp:hover {
+      background-color: #1eb855;
+    }
+
+    /* Toast Message */
+    .toast {
+      visibility: hidden;
+      min-width: 200px;
+      background-color: #333;
+      color: #fff;
+      text-align: center;
+      border-radius: 8px;
+      padding: 12px;
+      position: fixed;
+      z-index: 100;
+      bottom: 30px;
+      right: 30px;
+      font-size: 0.85rem;
+    }
+
+    .toast.show {
+      visibility: visible;
+      animation: fadein 0.5s, fadeout 0.5s 2.5s;
+    }
+
+    @keyframes fadein {
+      from {bottom: 0; opacity: 0;}
+      to {bottom: 30px; opacity: 1;}
+    }
+
+    @keyframes fadeout {
+      from {bottom: 30px; opacity: 1;}
+      to {bottom: 0; opacity: 0;}
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 868px) {
+      .hero, .french-fries-section {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .hero-image {
+        width: 280px;
+        height: 280px;
+      }
+
+      .cards-container {
+        flex-direction: column;
+        align-items: center;
+        gap: 60px;
+      }
+
+      .card {
+        width: 100%;
+        max-width: 300px;
+      }
+
+      .card-featured {
+        transform: none;
+      }
+    }
+  </style>
+
+  <!-- JavaScript Logic -->
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const RESTAURANT_PHONE_NUMBER = "256730519236"; 
+      let cart = {}; // Object storing item IDs, details and quantities
+
+      // Elements
+      const cartBadge = document.getElementById('cart-count');
+      const cartBtn = document.getElementById('cart-btn');
+      const cartDrawer = document.getElementById('cart-drawer');
+      const closeCartBtn = document.getElementById('close-cart-btn');
+      const cartItemsList = document.getElementById('cart-items-list');
+      const cartTotalPrice = document.getElementById('cart-total-price');
+      const sendOrderWhatsapp = document.getElementById('send-order-whatsapp');
+      const toast = document.getElementById('toast');
+
+      const modal = document.getElementById('booking-modal');
+      const openModalBtn = document.getElementById('open-modal-btn');
+      const closeModalBtn = document.getElementById('close-modal-btn');
+      const bookingForm = document.getElementById('booking-form');
+
+      // Add to Cart Buttons
+      document.querySelectorAll('.add-btn').forEach(button => {
+        button.addEventListener('click', (e) => {
+          const id = button.getAttribute('data-id');
+          const name = button.getAttribute('data-name');
+          const desc = button.getAttribute('data-desc');
+          const price = parseFloat(button.getAttribute('data-price'));
+
+          addToCart(id, name, desc, price);
+        });
+      });
+
+      function addToCart(id, name, desc, price) {
+        if (cart[id]) {
+          cart[id].quantity += 1;
+        } else {
+          cart[id] = { id, name, desc, price, quantity: 1 };
+        }
+        updateCartUI();
+        showToast(`${name} added to cart!`);
+      }
+
+      function updateQuantity(id, change) {
+        if (cart[id]) {
+          cart[id].quantity += change;
+          if (cart[id].quantity <= 0) {
+            delete cart[id];
+          }
+        }
+        updateCartUI();
+      }
+
+      function updateCartUI() {
+        let totalItems = 0;
+        let totalPrice = 0;
+        cartItemsList.innerHTML = '';
+
+        const keys = Object.keys(cart);
+        if (keys.length === 0) {
+          cartItemsList.innerHTML = '<p style="text-align: center; color: #888; margin-top: 40px;">Your cart is currently empty.</p>';
+        } else {
+          keys.forEach((key, index) => {
+            const item = cart[key];
+            totalItems += item.quantity;
+            const itemTotal = item.price * item.quantity;
+            totalPrice += itemTotal;
+
+            const cartItemHTML = `
+              <div class="cart-item">
+                <div class="cart-item-details">
+                  <h4>${index + 1}. ${item.name} (x${item.quantity})</h4>
+                  <p>${item.desc}</p>
+                </div>
+                <div class="cart-item-price">UGX ${itemTotal.toLocaleString()}</div>
+              </div>
+            `;
+            cartItemsList.insertAdjacentHTML('beforeend', cartItemHTML);
+          });
+        }
+
+        cartBadge.textContent = totalItems;
+        cartTotalPrice.textContent = `UGX ${totalPrice.toLocaleString()}`;
+
+        // Update individual card controls
+        document.querySelectorAll('.card').forEach(card => {
+          const id = card.getAttribute('data-id');
+          const actionBox = card.querySelector('.action-box');
+          const item = cart[id];
+
+          if (item && item.quantity > 0) {
+            actionBox.innerHTML = `
+              <div class="quantity-control">
+                <button class="quantity-btn minus-btn" onclick="modifyQty('${id}', -1)">-</button>
+                <span class="quantity-num">${item.quantity}</span>
+                <button class="quantity-btn plus-btn" onclick="modifyQty('${id}', 1)">+</button>
+              </div>
+            `;
+          } else {
+            const rawPrice = card.querySelector('.price').textContent.replace('UGX', '').replace(/,/g, '').trim();
+            actionBox.innerHTML = `
+              <button class="add-btn" data-id="${id}" data-name="${card.querySelector('h3').textContent}" data-desc="${card.querySelector('p').textContent}" data-price="${rawPrice}">
+                <i class="fa-solid fa-plus"></i>
+              </button>
+            `;
+            // Re-bind click listener
+            actionBox.querySelector('.add-btn').addEventListener('click', () => {
+              const b = actionBox.querySelector('.add-btn');
+              addToCart(b.getAttribute('data-id'), b.getAttribute('data-name'), b.getAttribute('data-desc'), parseFloat(b.getAttribute('data-price')));
+            });
+          }
+        });
+      }
+
+      window.modifyQty = function(id, change) {
+        updateQuantity(id, change);
+      };
+
+      // Slide Cart Controls
+      cartBtn.addEventListener('click', () => {
+        cartDrawer.classList.add('open');
+      });
+
+      closeCartBtn.addEventListener('click', () => {
+        cartDrawer.classList.remove('open');
+      });
+
+      // Submit Food Order via WhatsApp
+      sendOrderWhatsapp.addEventListener('click', () => {
+        const keys = Object.keys(cart);
+        if (keys.length === 0) {
+          showToast('Please add items to cart first!');
+          return;
+        }
+
+        let orderMessage = `Hello flavorfeed! \nI would like to order the following items:\n\n`;
+        let total = 0;
+
+        keys.forEach((key, index) => {
+          const item = cart[key];
+          const itemTotal = item.price * item.quantity;
+          total += itemTotal;
+          orderMessage += `${index + 1}. ${item.name}\n   - Details: ${item.desc}\n   - Quantity: ${item.quantity}\n   - Price: UGX ${item.price.toLocaleString()} each (UGX ${itemTotal.toLocaleString()} subtotal)\n\n`;
+        });
+
+        orderMessage += `>>> Grand Total: UGX ${total.toLocaleString()}\n\nPlease confirm my order!`;
+
+        const encodedMessage = encodeURIComponent(orderMessage);
+        const whatsappUrl = `https://wa.me/${RESTAURANT_PHONE_NUMBER}?text=${encodedMessage}`;
+
+        window.location.href = whatsappUrl;
+      });
+
+      // Booking Table Form Controls
+      openModalBtn.addEventListener('click', () => modal.style.display = 'flex');
+      closeModalBtn.addEventListener('click', () => modal.style.display = 'none');
+
+      bookingForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('cust-name').value;
+        const phone = document.getElementById('cust-phone').value;
+        const guests = document.getElementById('cust-guests').value;
+        const date = document.getElementById('cust-date').value;
+        const time = document.getElementById('cust-time').value;
+
+        const message = 
+`Hello flovor feed
+I would like to book a table. Here are my details:
+
+ Name: ${name}
+ Phone: ${phone}
+ Guests: ${guests}
+ Date: ${date}
+ Time: ${time}`;
+
+        const encodedMessage = encodeURIComponent(message);
+        window.location.href = `https://wa.me/${RESTAURANT_PHONE_NUMBER}?text=${encodedMessage}`;
+      });
+
+      function showToast(message) {
+        toast.textContent = message;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 3000);
+      }
+    });
+  </script>
+</body>
+</html>
+
