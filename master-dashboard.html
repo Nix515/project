@@ -268,7 +268,7 @@
       </div>
     </div>
 
-    <!-- Selected Client Profile Details View (Appears on Email Click) -->
+    <!-- Selected Client Profile Details View -->
     <div id="selected-client-details" class="details-panel" style="display:none;">
       <h2 style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Selected Client Details</h2>
       <div id="client-info-content" style="font-size:13px; line-height:1.8; color:#0D331D;">
@@ -303,7 +303,7 @@
   <!-- Reusable Action Menu -->
   <div class="dropdown-menu" id="actionDropdown">
     <button class="dropdown-item" onclick="executeAction('approve')">Approve subscription</button>
-    <button class="dropdown-item" onclick="executeAction('pending')">Mark payment pending</button>
+    <button class="dropdown-item" onclick="executeAction('pending')">Mark payment pending / Deactivate</button>
     <div style="height:1px; background:#E2D7C8; margin:6px 0;"></div>
     <button class="dropdown-item" onclick="executeAction('pro')">Set Pro ($50)</button>
     <button class="dropdown-item" onclick="executeAction('bronze')">Set Bronze ($100)</button>
@@ -376,9 +376,9 @@
                 <div class="user-name">${u.name || 'User'}</div>
                 <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
               </td>
-              <td><span class="pill pill-${(p.plan || 'bronze').toLowerCase()}">${(p.plan || 'bronze').toUpperCase()}</span></td>
-              <td style="font-weight:600;">$${p.amount || 0}</td>
-              <td>${new Date(p.date).toLocaleString()}</td>
+              <td><span class="pill pill-${(p.plan || plan).toLowerCase()}">${(p.plan || plan).toUpperCase()}</span></td>
+              <td style="font-weight:600;">$${p.amount || prices[plan] || 0}</td>
+              <td>${new Date(p.date || Date.now()).toLocaleString()}</td>
               <td><span class="pill ${p.status === 'active' ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
               <td>
                 <button class="btn-start" style="padding:4px 10px; font-size:11px;" onclick="approvePayment('${uid}', '${pId}')">
@@ -407,7 +407,7 @@
         } else {
           accKeys.forEach(accId => {
             const acc = accounts[accId];
-            const isRunning = !!acc.botRunning;
+            const isRunning = isActive && !!acc.botRunning;
             const pwdKey = `${uid}_${accId}`;
             const showPwd = !!masterVisiblePasswords[pwdKey];
 
@@ -432,12 +432,12 @@
               </td>
               <td>
                 <span class="pill ${isRunning ? 'pill-status-active' : 'pill-status-pending'}">
-                  ${isRunning ? 'Running' : 'Stopped'}
+                  ${!isActive ? 'Deactivated by Master' : (isRunning ? 'Running' : 'Stopped')}
                 </span>
               </td>
               <td>
-                <button class="${isRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', '${accId}', ${!isRunning})">
-                  ${isRunning ? 'Stop' : 'Start'}
+                <button ${!isActive ? 'disabled style="background-color:#9CA3AF; cursor:not-allowed;"' : ''} class="${isRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', '${accId}', ${!isRunning})">
+                  ${!isActive ? 'Locked' : (isRunning ? 'Stop' : 'Start')}
                 </button>
               </td>
             `;
@@ -474,12 +474,15 @@
 
       detailsPanel.style.display = 'block';
 
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const currentPlanKey = (u.plan || 'bronze').toLowerCase();
+
       let paymentsListHTML = 'No payment records';
       if (u.payments) {
         paymentsListHTML = Object.values(u.payments).map(p => `
           <div style="background:#FAF5EE; border:1px solid #EADBCE; border-radius:12px; padding:10px; margin-top:6px;">
-            <div><strong>Plan:</strong> ${p.plan ? p.plan.toUpperCase() : 'BRONZE'} ($${p.amount || 0})</div>
-            <div><strong>Date:</strong> ${new Date(p.date).toLocaleString()}</div>
+            <div><strong>Plan:</strong> ${(p.plan || currentPlanKey).toUpperCase()} ($${p.amount || prices[currentPlanKey] || 0})</div>
+            <div><strong>Date:</strong> ${new Date(p.date || Date.now()).toLocaleString()}</div>
             <div><strong>Status:</strong> ${p.status || 'pending'}</div>
             <div><strong>Method:</strong> ${p.method || 'phone'}</div>
             <div><strong>Sender / Phone / Email:</strong> ${p.senderIdentifier || u.phone || 'N/A'}</div>
@@ -495,7 +498,7 @@
           <div><strong>Contact Name:</strong> ${u.contactName || u.name || 'N/A'}</div>
           <div><strong>Email:</strong> ${u.email || 'N/A'}</div>
           <div><strong>Phone / Identifier:</strong> ${u.phone || 'N/A'}</div>
-          <div><strong>Current Plan:</strong> ${(u.plan || 'bronze').toUpperCase()}</div>
+          <div><strong>Current Plan:</strong> ${currentPlanKey.toUpperCase()} ($${prices[currentPlanKey] || 100})</div>
           <div><strong>Status:</strong> ${u.status || 'pending'}</div>
           <div><strong>Started Date:</strong> ${u.startedDate ? new Date(u.startedDate).toLocaleString() : 'Pending'}</div>
           <div><strong>30-Day Next Renewal:</strong> ${u.renewalDate ? new Date(u.renewalDate).toLocaleString() : 'Pending'}</div>
@@ -538,15 +541,55 @@
       const renewal = new Date();
       renewal.setDate(now.getDate() + 30);
 
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const u = localUsers[activeUid];
+
       if (action === 'approve') {
         updates.status = 'active';
         updates.startedDate = now.toISOString();
         updates.renewalDate = renewal.toISOString();
+
+        // Also update any existing payment records to active status and current amount
+        if (u && u.payments) {
+          Object.keys(u.payments).forEach(pId => {
+            const targetPlan = u.plan || 'bronze';
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+              status: 'active',
+              plan: targetPlan,
+              amount: prices[targetPlan] || 100
+            });
+          });
+        }
       }
-      if (action === 'pending') updates.status = 'pending';
-      if (action === 'pro') updates.plan = 'pro';
-      if (action === 'bronze') updates.plan = 'bronze';
-      if (action === 'platinum') updates.plan = 'platinum';
+
+      if (action === 'pending') {
+        updates.status = 'pending';
+        // Force stop all bots when deactivated by master
+        if (u && u.accounts) {
+          Object.keys(u.accounts).forEach(accId => {
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/accounts/${accId}`), {
+              botRunning: false
+            });
+          });
+        }
+      }
+
+      if (action === 'pro' || action === 'bronze' || action === 'platinum') {
+        const newPlan = action;
+        const newPrice = prices[newPlan];
+
+        updates.plan = newPlan;
+
+        // Synchronize payment records to match updated plan tier and price globally
+        if (u && u.payments) {
+          Object.keys(u.payments).forEach(pId => {
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+              plan: newPlan,
+              amount: newPrice
+            });
+          });
+        }
+      }
 
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
       closeDropdown();
@@ -557,8 +600,14 @@
       const renewal = new Date();
       renewal.setDate(now.getDate() + 30);
 
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const u = localUsers[uid];
+      const targetPlan = (u && u.plan) ? u.plan.toLowerCase() : 'bronze';
+
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { 
-        status: 'active' 
+        status: 'active',
+        plan: targetPlan,
+        amount: prices[targetPlan] || 100
       });
       
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { 
@@ -569,6 +618,8 @@
     }
 
     function toggleBot(uid, accId, newState) {
+      const u = localUsers[uid];
+      if (!u || u.status !== 'active') return;
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/accounts/${accId}`), {
         botRunning: newState
       });
