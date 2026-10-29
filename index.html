@@ -46,7 +46,7 @@
     import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw", // Insert your API key here
       authDomain: "vee-fxx.firebaseapp.com",
       databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "vee-fxx",
@@ -73,6 +73,7 @@
       onAuthStateChanged
     };
 
+    // Global auth listener
     onAuthStateChanged(auth, (user) => {
       if (user) {
         window.listenToUserData(user);
@@ -94,7 +95,7 @@
     }
 
     .glass-toast {
-      background: rgba(250, 245, 238, 0.9);
+      background: rgba(250, 245, 238, 0.85);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border: 1px solid rgba(13, 51, 29, 0.12);
@@ -119,7 +120,8 @@
     }
     .plan-card-selected .plan-title,
     .plan-card-selected .plan-price,
-    .plan-card-selected .plan-desc {
+    .plan-card-selected .plan-desc,
+    .plan-card-selected li {
       color: #FAF5EE !important;
     }
 
@@ -136,6 +138,7 @@
       color: #0D331D;
       transition: all 0.2s ease;
     }
+
     .input-field:focus {
       outline: none;
       border-color: #0D331D;
@@ -145,8 +148,13 @@
     .glass-btn {
       background: rgba(255, 255, 255, 0.12);
       backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       border: 1px solid rgba(255, 255, 255, 0.22);
       color: #FAF5EE;
+      transition: all 0.25s ease;
+    }
+    .glass-btn:hover {
+      background: rgba(255, 255, 255, 0.22);
     }
 
     /* Exact Screenshot Payment Sub-card Styling */
@@ -157,121 +165,418 @@
       padding: 16px;
       transition: all 0.2s ease;
     }
-    .payment-sub-card:hover {
-      border-color: rgba(13, 51, 29, 0.25);
-    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- AUTH SECTION -->
+  <!-- ================= AUTH CONTAINER ================= -->
   <div id="auth-section" class="flex-1 flex items-center justify-center p-4 sm:p-6">
     <div class="w-full max-w-sm bg-cardCream rounded-[24px] p-6 sm:p-8 border border-cardBorder shadow-lg">
+      
+      <!-- LOGIN FORM -->
       <div id="login-box" class="space-y-5">
         <div>
           <h2 class="font-serif text-2xl sm:text-3xl font-normal text-forest mb-1">Welcome back</h2>
           <p class="text-xs sm:text-sm text-mutedText">Log in to your account.</p>
         </div>
+
         <button onclick="handleGoogleSignIn()" class="w-full py-2.5 px-4 rounded-xl border border-cardBorder bg-white hover:bg-slate-50 transition flex items-center justify-center gap-2.5 text-xs sm:text-sm font-medium text-forest shadow-sm">
-          <svg class="w-4 h-4" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/></svg>
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
           Continue with Google
         </button>
+
+        <div class="flex items-center my-3">
+          <div class="flex-1 border-t border-cardBorder"></div>
+          <span class="px-3 text-[11px] text-mutedText uppercase tracking-wider">Or</span>
+          <div class="flex-1 border-t border-cardBorder"></div>
+        </div>
+
         <form onsubmit="handleEmailLogin(event)" class="space-y-3.5">
-          <div><label class="block text-[11px] font-semibold text-forest uppercase mb-1">Email</label><input type="email" id="login-email" required class="w-full px-3.5 py-2.5 input-field text-xs"></div>
-          <div><label class="block text-[11px] font-semibold text-forest uppercase mb-1">Password</label><input type="password" id="login-password" required class="w-full px-3.5 py-2.5 input-field text-xs"></div>
-          <button type="submit" class="w-full py-3 px-4 bg-forest hover:bg-forestHover text-white font-medium text-xs rounded-xl shadow-sm">Sign In</button>
+          <div>
+            <label class="block text-[11px] font-semibold text-forest uppercase tracking-wider mb-1.5">Email</label>
+            <input type="email" id="login-email" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="you@example.com">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-forest uppercase tracking-wider mb-1.5">Password</label>
+            <input type="password" id="login-password" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full py-3 px-4 bg-forest hover:bg-forestHover text-white font-medium text-xs sm:text-sm rounded-xl transition shadow-sm">
+            Sign In
+          </button>
         </form>
-        <p class="text-xs text-center text-mutedText">Don't have an account? <a href="#" onclick="toggleAuthMode('register')" class="text-forest font-semibold underline">Create account</a></p>
+
+        <p class="text-xs text-center text-mutedText pt-2">
+          Don't have an account? <a href="#" onclick="toggleAuthMode('register')" class="text-forest font-semibold underline">Create account</a>
+        </p>
       </div>
 
+      <!-- REGISTER FORM -->
       <div id="register-box" class="space-y-5 hidden">
         <div>
           <h2 class="font-serif text-2xl sm:text-3xl font-normal text-forest mb-1">Create account</h2>
           <p class="text-xs sm:text-sm text-mutedText">Sign up to get started.</p>
         </div>
+
+        <button onclick="handleGoogleSignIn()" class="w-full py-2.5 px-4 rounded-xl border border-cardBorder bg-white hover:bg-slate-50 transition flex items-center justify-center gap-2.5 text-xs sm:text-sm font-medium text-forest shadow-sm">
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div class="flex items-center my-3">
+          <div class="flex-1 border-t border-cardBorder"></div>
+          <span class="px-3 text-[11px] text-mutedText uppercase tracking-wider">Or</span>
+          <div class="flex-1 border-t border-cardBorder"></div>
+        </div>
+
         <form onsubmit="handleEmailRegister(event)" class="space-y-3.5">
-          <div><label class="block text-[11px] font-semibold text-forest uppercase mb-1">Full Name</label><input type="text" id="register-name" required class="w-full px-3.5 py-2.5 input-field text-xs"></div>
-          <div><label class="block text-[11px] font-semibold text-forest uppercase mb-1">Email</label><input type="email" id="register-email" required class="w-full px-3.5 py-2.5 input-field text-xs"></div>
-          <div><label class="block text-[11px] font-semibold text-forest uppercase mb-1">Password</label><input type="password" id="register-password" required class="w-full px-3.5 py-2.5 input-field text-xs"></div>
-          <button type="submit" class="w-full py-3 px-4 bg-forest hover:bg-forestHover text-white font-medium text-xs rounded-xl shadow-sm">Register Account</button>
+          <div>
+            <label class="block text-[11px] font-semibold text-forest uppercase tracking-wider mb-1.5">Full Name</label>
+            <input type="text" id="register-name" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="Venom Bonaparte">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-forest uppercase tracking-wider mb-1.5">Email</label>
+            <input type="email" id="register-email" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="you@example.com">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-forest uppercase tracking-wider mb-1.5">Password</label>
+            <input type="password" id="register-password" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="••••••••">
+          </div>
+          <button type="submit" class="w-full py-3 px-4 bg-forest hover:bg-forestHover text-white font-medium text-xs sm:text-sm rounded-xl transition shadow-sm">
+            Register Account
+          </button>
         </form>
-        <p class="text-xs text-center text-mutedText">Already have an account? <a href="#" onclick="toggleAuthMode('login')" class="text-forest font-semibold underline">Sign in</a></p>
+
+        <p class="text-xs text-center text-mutedText pt-2">
+          Already have an account? <a href="#" onclick="toggleAuthMode('login')" class="text-forest font-semibold underline">Sign in</a>
+        </p>
       </div>
+
     </div>
   </div>
 
-  <!-- PORTAL SECTION -->
+  <!-- ================= POST-LOGIN USER PORTAL ================= -->
   <div id="portal-section" class="hidden min-h-screen flex flex-col w-full">
+    
+    <!-- HEADER -->
     <header class="bg-forest text-white px-4 py-4 sm:px-8">
       <div class="max-w-xl mx-auto flex flex-col gap-4">
         <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-[#EEDCD0] flex items-center justify-center font-serif text-[#8A5237] font-bold text-lg">T</div>
+          <div class="w-9 h-9 rounded-full bg-[#EEDCD0] flex items-center justify-center font-serif text-[#8A5237] font-bold text-lg">
+            T
+          </div>
           <span class="font-serif text-xl tracking-wider font-semibold">TITAN</span>
         </div>
-        <div class="flex items-center gap-2 pt-1">
-          <button onclick="handleSignOut()" class="glass-btn px-3.5 py-1.5 rounded-full text-xs font-medium">Sign out</button>
-          <button onclick="switchTab('account')" id="nav-account" class="px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white">My account</button>
-          <button onclick="switchTab('plans')" id="nav-plans" class="px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60">Plans & Payment</button>
+
+        <div class="flex items-center gap-2 pt-1 flex-wrap">
+          <button onclick="handleSignOut()" class="glass-btn px-3.5 py-1.5 rounded-full text-xs font-medium flex items-center gap-1.5 mr-1">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
+            Sign out
+          </button>
+
+          <button onclick="switchTab('account')" id="nav-account" class="px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white transition">
+            My account
+          </button>
+          <button onclick="switchTab('plans')" id="nav-plans" class="px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60 transition">
+            Plans
+          </button>
         </div>
       </div>
     </header>
 
+    <!-- MAIN BODY -->
     <main class="flex-1 px-4 py-6 sm:px-6">
       <div class="max-w-xl mx-auto space-y-6">
 
-        <!-- ACCOUNT TAB -->
+        <!-- TAB CONTENT 1: MY ACCOUNT VIEW -->
         <div id="tab-content-account" class="space-y-6">
+          
           <div>
             <div class="text-[11px] font-bold uppercase tracking-widest text-mutedText mb-1">MY ACCOUNT</div>
             <h1 class="font-serif text-3xl sm:text-4xl text-forest font-medium" id="display-user-name">Loading...</h1>
+            
             <div class="flex items-center gap-2 mt-3">
-              <span id="display-user-plan" class="px-3 py-1 rounded-full text-xs font-semibold bg-bronzeBg text-bronzeText uppercase">BRONZE</span>
+              <span id="display-user-plan" class="px-3 py-1 rounded-full text-xs font-semibold bg-bronzeBg text-bronzeText uppercase tracking-wider">BRONZE</span>
               <span id="display-user-status" class="px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Payment Pending</span>
             </div>
 
-            <!-- WAITING BANNER -->
-            <div id="payment-pending-alert" class="mt-4 p-4 rounded-2xl bg-[#FAF5EE] border border-[#E8DED5] space-y-2">
-              <div class="text-xs font-medium text-forest" id="banner-status-text">Your plan is waiting for payment confirmation. It becomes active as soon as your payment is confirmed.</div>
-              <button onclick="switchTab('plans')" class="mt-1 px-3.5 py-1.5 rounded-full bg-forest text-white font-medium text-[11px]">View Payment Details</button>
+            <!-- PAYMENT ALERT BAR IF PENDING -->
+            <div id="payment-pending-alert" class="mt-4 p-4 rounded-2xl bg-[#FAF5EE] border border-[#E8DED5] text-xs text-forest space-y-2">
+              <div class="font-semibold" id="banner-status-text">Your plan is waiting for payment confirmation. It becomes active as soon as your payment is confirmed.</div>
+              <button onclick="switchTab('plans')" class="mt-2 px-3.5 py-1.5 rounded-full bg-forest text-white font-medium text-[11px]">View Payment Details</button>
+            </div>
+
+            <button onclick="switchTab('plans')" class="mt-4 px-4 py-2 rounded-2xl border border-cardBorder bg-cardCream text-forest text-xs font-medium hover:bg-stone-200/50 transition">
+              Change plan
+            </button>
+          </div>
+
+          <!-- Subscription Info Cards -->
+          <div class="space-y-4">
+            <div class="glass-card p-5">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText mb-2">CURRENT PLAN</div>
+              <div class="font-serif text-2xl text-forest font-normal" id="card-plan-name">Bronze</div>
+              <div class="text-xs text-mutedText mt-1" id="card-plan-price">$100 per month</div>
+            </div>
+
+            <div class="glass-card p-5">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText mb-2">STARTED</div>
+              <div class="font-serif text-2xl text-forest font-normal" id="card-started-date">Pending</div>
+            </div>
+
+            <div class="glass-card p-5">
+              <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText mb-2">NEXT RENEWAL</div>
+              <div class="font-serif text-2xl text-forest font-normal" id="card-renewal-date">Pending</div>
             </div>
           </div>
 
-          <!-- Broker Credentials Form -->
-          <div class="glass-card p-6 space-y-4">
-            <h2 class="font-serif text-2xl font-normal text-forest">Broker Credentials</h2>
-            <form onsubmit="handleSaveBrokerAccount(event)" class="space-y-4">
-              <div><label class="block text-xs font-semibold text-forest mb-1">Broker & Server</label><input type="text" id="broker-server" required placeholder="Exness real5" class="w-full px-4 py-2.5 input-field text-xs"></div>
-              <div><label class="block text-xs font-semibold text-forest mb-1">Login ID</label><input type="text" id="broker-login" required placeholder="11536363" class="w-full px-4 py-2.5 input-field text-xs"></div>
-              <div><label class="block text-xs font-semibold text-forest mb-1">Password</label><input type="password" id="broker-password" required placeholder="••••••••" class="w-full px-4 py-2.5 input-field text-xs"></div>
-              <button type="submit" class="px-5 py-2.5 rounded-full bg-forest text-white text-xs font-medium">Save Broker Details</button>
-            </form>
+          <!-- Broker Accounts Section -->
+          <div class="pt-2 space-y-4">
+            <div class="flex items-center gap-2 text-forest">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"/></svg>
+              <h2 class="font-serif text-2xl font-normal text-forest">Broker accounts</h2>
+            </div>
+            <p class="text-xs text-mutedText leading-relaxed">
+              Add the MT4 or MT5 account the XAUUSD bot should trade, then start and stop the bot here.
+            </p>
+
+            <button onclick="showToast('Broker account addition unlocked.')" class="px-4 py-2.5 rounded-full bg-forest text-white text-xs font-medium hover:bg-forestHover transition flex items-center gap-2 shadow-sm">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Add account
+            </button>
+
+            <!-- Active Broker Account Card -->
+            <div class="glass-card p-6 space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="font-serif text-2xl text-forest font-medium" id="display-broker-title">Venom</span>
+                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EAE2D8] text-forest" id="display-broker-platform">MT5</span>
+                </div>
+                
+                <div id="bot-status-badge" class="px-3 py-1 rounded-full text-xs font-medium bg-[#E8DDD1] text-forest flex items-center gap-1.5">
+                  <span id="bot-status-dot" class="w-2 h-2 rounded-full bg-stone-400"></span>
+                  <span id="bot-status-text">Bot stopped</span>
+                </div>
+              </div>
+
+              <div class="text-xs text-mutedText" id="display-broker-server">
+                Exnessmt5real27 · Exness real5
+              </div>
+
+              <div class="flex items-center gap-4 py-1">
+                <button onclick="showToast('Edit account info')" class="text-forest/70 hover:text-forest">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 210.3H3v-3.572L16.732 3.732z"/></svg>
+                </button>
+                <button onclick="showToast('Delete requested')" class="text-red-700/70 hover:text-red-700">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                </button>
+              </div>
+
+              <div class="space-y-3 pt-2 text-xs">
+                <div>
+                  <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">SERVER</div>
+                  <div class="text-forest font-medium mt-0.5" id="display-broker-server-val">Exness real5</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">LOGIN</div>
+                  <div class="text-forest font-medium mt-0.5" id="display-broker-login-id">11536363</div>
+                </div>
+                <div>
+                  <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">PASSWORD</div>
+                  <div class="flex items-center gap-2 mt-0.5">
+                    <span id="pwd-display" class="text-forest font-medium tracking-widest">••••••••</span>
+                    <button onclick="togglePasswordVisibility()" class="text-mutedText hover:text-forest">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pt-3">
+                <button id="bot-toggle-btn" onclick="toggleBotExecution()" class="px-5 py-2.5 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition flex items-center gap-2 shadow-sm">
+                  <svg id="bot-btn-icon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                  <span id="bot-btn-text">Start bot</span>
+                </button>
+                <div id="bot-footer-desc" class="text-[11px] text-mutedText mt-2.5">
+                  The XAUUSD bot is idle on this account.
+                </div>
+              </div>
+
+            </div>
           </div>
+
+          <!-- Payment History Section -->
+          <div class="pt-2 space-y-3">
+            <div class="flex items-center gap-2 text-forest">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              <h2 class="font-serif text-2xl font-normal text-forest">Payment history</h2>
+            </div>
+
+            <div class="glass-card p-5 text-xs text-mutedText">
+              No payments recorded yet.
+            </div>
+          </div>
+
+          <!-- Account Details Form -->
+          <div class="pt-2 space-y-4">
+            <h2 class="font-serif text-2xl font-normal text-forest">Account details</h2>
+
+            <div class="glass-card p-6 space-y-4">
+              <form onsubmit="handleSaveAccountDetails(event)" class="space-y-4">
+                <div>
+                  <label class="block text-xs font-semibold text-forest mb-1.5">Account name</label>
+                  <input type="text" id="acc-name" value="Venom Bonaparte" class="w-full px-4 py-2.5 input-field text-xs">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-forest mb-1.5">Contact name</label>
+                  <input type="text" id="contact-name" value="Venom Bonaparte" class="w-full px-4 py-2.5 input-field text-xs">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-forest mb-1.5">Phone</label>
+                  <input type="tel" id="acc-phone" placeholder="" class="w-full px-4 py-2.5 input-field text-xs">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-forest mb-1.5">Email</label>
+                  <input type="email" id="acc-email" value="venombonaparte46@gmail.com" class="w-full px-4 py-2.5 input-field text-xs">
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold text-forest mb-1.5">Notes</label>
+                  <textarea id="acc-notes" rows="3" class="w-full px-4 py-2.5 input-field text-xs" placeholder="Anything you'd like Titan to know about your account"></textarea>
+                </div>
+
+                <button type="submit" class="px-5 py-2.5 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm">
+                  Save details
+                </button>
+              </form>
+            </div>
+          </div>
+
         </div>
 
-        <!-- PLANS & EXACT SCREENSHOT PAYMENT DETAILS TAB -->
+
+        <!-- TAB CONTENT 2: SUBSCRIPTION PLANS & EXACT PAYMENT DETAILS -->
         <div id="tab-content-plans" class="space-y-6 hidden">
           <div>
-            <div class="text-[11px] font-bold uppercase tracking-widest text-mutedText mb-1">SUBSCRIPTION & PAYMENT</div>
-            <h1 class="font-serif text-3xl sm:text-4xl text-forest font-medium">How to pay</h1>
-            <p class="text-xs text-mutedText mt-1">Send the amount to any account below, then your plan is activated once the payment is confirmed.</p>
+            <div class="text-[11px] font-bold uppercase tracking-widest text-mutedText mb-1">SUBSCRIPTIONS</div>
+            <h1 class="font-serif text-3xl sm:text-4xl text-forest font-medium">Choose your plan</h1>
+            <p class="text-xs text-mutedText mt-1">Pick the plan that fits your book of client accounts. You can move up or down at any time.</p>
           </div>
 
-          <div class="space-y-3">
-            <div id="plan-card-pro" onclick="selectPlan('pro')" class="plan-card-unselected p-4 cursor-pointer">
-              <div class="font-serif text-lg font-normal">PRO — $50 /month</div>
+          <div class="space-y-4">
+            
+            <!-- PRO PLAN CARD -->
+            <div id="plan-card-pro" onclick="selectPlan('pro')" class="plan-card-unselected p-6 space-y-4 relative cursor-pointer">
+              <div class="flex items-center justify-between">
+                <div class="plan-title font-serif text-2xl sm:text-3xl font-normal tracking-wide">PRO</div>
+                <div id="check-pro" class="w-6 h-6 rounded-full bg-[#D49E82] text-white flex items-center justify-center hidden">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <div class="plan-price text-3xl font-serif font-normal">$50 <span class="text-xs font-sans text-mutedText">/month</span></div>
+              <p class="plan-desc text-xs text-mutedText">Start running the XAUUSD bot on your own broker account.</p>
+              
+              <ul class="text-xs space-y-2.5 pt-1">
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  1 broker account (MT4 or MT5)
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Start and stop the XAUUSD bot
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Subscription and payment history
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Email support
+                </li>
+              </ul>
             </div>
-            <div id="plan-card-bronze" onclick="selectPlan('bronze')" class="plan-card-selected p-4 cursor-pointer">
-              <div class="font-serif text-lg font-normal">BRONZE — $100 /month</div>
+
+            <!-- BRONZE PLAN CARD -->
+            <div id="plan-card-bronze" onclick="selectPlan('bronze')" class="plan-card-selected p-6 space-y-4 relative cursor-pointer">
+              <div class="flex items-center justify-between">
+                <div class="plan-title font-serif text-2xl sm:text-3xl font-normal tracking-wide">BRONZE</div>
+                <div id="check-bronze" class="w-6 h-6 rounded-full bg-[#D49E82] text-white flex items-center justify-center">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <div class="plan-price text-3xl font-serif font-normal">$100 <span class="text-xs font-sans text-mutedText">/month</span></div>
+              <p class="plan-desc text-xs text-mutedText">Ideal for managing multiple client accounts under one setup.</p>
+
+              <ul class="text-xs space-y-2.5 pt-1">
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Up to 3 broker accounts
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Start and stop the bot per account
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Renewal reminders
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Priority support
+                </li>
+              </ul>
             </div>
-            <div id="plan-card-platinum" onclick="selectPlan('platinum')" class="plan-card-unselected p-4 cursor-pointer">
-              <div class="font-serif text-lg font-normal">PLATINUM — $250 /month</div>
+
+            <!-- PLATINUM PLAN CARD -->
+            <div id="plan-card-platinum" onclick="selectPlan('platinum')" class="plan-card-unselected p-6 space-y-4 relative cursor-pointer">
+              <div class="flex items-center justify-between">
+                <div class="plan-title font-serif text-2xl sm:text-3xl font-normal tracking-wide">PLATINUM</div>
+                <div id="check-platinum" class="w-6 h-6 rounded-full bg-[#D49E82] text-white flex items-center justify-center hidden">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                </div>
+              </div>
+              <div class="plan-price text-3xl font-serif font-normal">$250 <span class="text-xs font-sans text-mutedText">/month</span></div>
+              <p class="plan-desc text-xs text-mutedText">For traders who want every account under the bot.</p>
+
+              <ul class="text-xs space-y-2.5 pt-1">
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Unlimited broker accounts
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Start and stop the bot per account
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Priority bot restarts
+                </li>
+                <li class="flex items-center gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+                  Dedicated support
+                </li>
+              </ul>
             </div>
+
           </div>
 
-          <!-- EXACT PAYMENT METHODS FROM SCREENSHOT -->
-          <div class="glass-card p-6 space-y-4">
-            <h3 class="font-serif text-xl text-forest font-medium">Payment channels</h3>
-
+          <!-- EXACT HOW TO PAY PAYMENT DETAILS PANEL (FROM SCREENSHOT) -->
+          <div class="glass-card p-6 space-y-4 mt-6">
+            <h3 class="font-serif text-2xl text-forest font-normal">How to pay</h3>
+            <p class="text-xs text-mutedText leading-relaxed">Send the amount to any account below, then your plan is activated once the payment is confirmed.</p>
+            
             <!-- MTN MOBILE MONEY -->
             <div class="payment-sub-card space-y-1">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-mutedText">
@@ -302,8 +607,8 @@
               <div class="text-xs text-mutedText">USDT TRC20 wallet</div>
             </div>
 
-            <button onclick="notifyPaymentSent()" class="w-full py-3 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm mt-3">
-              I have sent payment — Notify Dashboard
+            <button id="plan-checkout-btn" onclick="submitSubscriptionRequest()" class="w-full py-3 px-4 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm mt-2">
+              Continue with Bronze — $100
             </button>
           </div>
 
@@ -311,49 +616,82 @@
 
       </div>
     </main>
+
   </div>
 
+
+  <!-- ================= GLASSY TOAST NOTIFICATION POPUP ================= -->
   <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
-    <div class="glass-toast rounded-2xl px-4 py-3 flex items-center gap-3">
-      <span id="toast-message" class="text-xs font-medium text-forest">Action completed</span>
+    <div class="glass-toast rounded-2xl px-4 py-3 flex items-center gap-3 min-w-[240px] max-w-sm">
+      <div id="toast-icon-bg" class="w-6 h-6 rounded-full bg-emerald-800 text-white flex items-center justify-center shrink-0">
+        <svg id="toast-icon" class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+      </div>
+      <span id="toast-message" class="text-xs font-medium text-forest leading-snug">Action completed</span>
     </div>
   </div>
 
+
+  <!-- ================= APPLICATION SCRIPT ================= -->
   <script>
-    let currentUid = null;
+    let isBotRunning = false;
+    let isPasswordVisible = false;
+    let toastTimeout = null;
+    let currentUser = null;
     let selectedPlan = 'bronze';
+    let currentUid = null;
 
     function toggleAuthMode(mode) {
+      const loginBox = document.getElementById('login-box');
+      const registerBox = document.getElementById('register-box');
       if (mode === 'register') {
-        document.getElementById('login-box').classList.add('hidden');
-        document.getElementById('register-box').classList.remove('hidden');
+        loginBox.classList.add('hidden');
+        registerBox.classList.remove('hidden');
       } else {
-        document.getElementById('register-box').classList.add('hidden');
-        document.getElementById('login-box').classList.remove('hidden');
+        registerBox.classList.add('hidden');
+        loginBox.classList.remove('hidden');
       }
     }
 
     function switchTab(tab) {
+      const accountContent = document.getElementById('tab-content-account');
+      const plansContent = document.getElementById('tab-content-plans');
+      const navAccount = document.getElementById('nav-account');
+      const navPlans = document.getElementById('nav-plans');
+
       if (tab === 'account') {
-        document.getElementById('tab-content-account').classList.remove('hidden');
-        document.getElementById('tab-content-plans').classList.add('hidden');
-        document.getElementById('nav-account').className = "px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white";
-        document.getElementById('nav-plans').className = "px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60";
+        accountContent.classList.remove('hidden');
+        plansContent.classList.add('hidden');
+        navAccount.className = "px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white transition";
+        navPlans.className = "px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60 transition";
       } else {
-        document.getElementById('tab-content-plans').classList.remove('hidden');
-        document.getElementById('tab-content-account').classList.add('hidden');
-        document.getElementById('nav-plans').className = "px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white";
-        document.getElementById('nav-account').className = "px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60";
+        plansContent.classList.remove('hidden');
+        accountContent.classList.add('hidden');
+        navPlans.className = "px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white transition";
+        navAccount.className = "px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60 transition";
       }
     }
 
-    function selectPlan(key) {
-      selectedPlan = key;
-      ['pro', 'bronze', 'platinum'].forEach(p => {
-        const card = document.getElementById(`plan-card-${p}`);
-        card.className = p === key ? "plan-card-selected p-4 cursor-pointer" : "plan-card-unselected p-4 cursor-pointer";
+    function selectPlan(planKey) {
+      selectedPlan = planKey;
+      const cards = ['pro', 'bronze', 'platinum'];
+      const btn = document.getElementById('plan-checkout-btn');
+
+      cards.forEach(key => {
+        const card = document.getElementById(`plan-card-${key}`);
+        const checkBadge = document.getElementById(`check-${key}`);
+
+        if (key === planKey) {
+          card.className = "plan-card-selected p-6 space-y-4 relative cursor-pointer";
+          if (checkBadge) checkBadge.classList.remove('hidden');
+        } else {
+          card.className = "plan-card-unselected p-6 space-y-4 relative cursor-pointer";
+          if (checkBadge) checkBadge.classList.add('hidden');
+        }
       });
-      document.getElementById('banner-status-text').innerText = `Your ${key.toUpperCase()} plan is waiting for payment confirmation. It becomes active as soon as your payment is confirmed.`;
+
+      if (planKey === 'pro') btn.innerText = 'Continue with Pro — $50';
+      if (planKey === 'bronze') btn.innerText = 'Continue with Bronze — $100';
+      if (planKey === 'platinum') btn.innerText = 'Continue with Platinum — $250';
     }
 
     function copyToClipboard(text) {
@@ -361,93 +699,186 @@
       showToast("Copied to clipboard!");
     }
 
-    window.listenToUserData = function(user) {
-      currentUid = user.uid;
-      document.getElementById('auth-section').classList.add('hidden');
-      document.getElementById('portal-section').classList.remove('hidden');
-
-      window.rtdbMethods.onValue(window.rtdbMethods.ref(window.firebaseDb, 'users/' + user.uid), (snap) => {
-        const data = snap.val();
-        if (data) {
-          document.getElementById('display-user-name').innerText = data.name || user.email;
-          document.getElementById('display-user-plan').innerText = (data.plan || 'BRONZE').toUpperCase();
-          const statusElem = document.getElementById('display-user-status');
-          if (data.status === 'active') {
-            statusElem.className = "px-3 py-1 rounded-full text-xs font-semibold bg-activeBg text-activeText";
-            statusElem.innerText = "Active";
-            document.getElementById('payment-pending-alert').classList.add('hidden');
-          } else {
-            statusElem.className = "px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
-            statusElem.innerText = "Payment Pending";
-            document.getElementById('payment-pending-alert').classList.remove('hidden');
-          }
-        } else {
-          window.rtdbMethods.set(window.rtdbMethods.ref(window.firebaseDb, 'users/' + user.uid), {
-            email: user.email,
-            name: user.displayName || user.email.split('@')[0],
-            plan: 'bronze',
-            status: 'pending',
-            botRunning: false
-          });
-        }
-      });
-    };
-
-    function notifyPaymentSent() {
+    function submitSubscriptionRequest() {
       if (!currentUid) return;
       window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
         plan: selectedPlan,
         status: 'pending'
       });
-      showToast("Payment notification sent to Master Dashboard!");
+      showToast(`Subscription set to ${selectedPlan.toUpperCase()}. Pending payment confirmation.`);
       switchTab('account');
+    }
+
+    function toggleBotExecution() {
+      if (!currentUid) return;
+      isBotRunning = !isBotRunning;
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
+        botRunning: isBotRunning
+      });
+      showToast(isBotRunning ? "Bot started" : "Bot stopped");
+    }
+
+    function showToast(message, isSuccess = true) {
+      const container = document.getElementById('toast-container');
+      const msgElem = document.getElementById('toast-message');
+      const iconBg = document.getElementById('toast-icon-bg');
+      const icon = document.getElementById('toast-icon');
+
+      msgElem.innerText = message;
+
+      if (isSuccess) {
+        iconBg.className = "w-6 h-6 rounded-full bg-emerald-800 text-white flex items-center justify-center shrink-0";
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>`;
+      } else {
+        iconBg.className = "w-6 h-6 rounded-full bg-stone-600 text-white flex items-center justify-center shrink-0";
+        icon.innerHTML = `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/>`;
+      }
+
+      container.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+      container.classList.add('opacity-100', 'translate-y-0');
+
+      if (toastTimeout) clearTimeout(toastTimeout);
+      toastTimeout = setTimeout(() => {
+        container.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+        container.classList.remove('opacity-100', 'translate-y-0');
+      }, 3000);
+    }
+
+    function togglePasswordVisibility() {
+      const pwdElem = document.getElementById('pwd-display');
+      isPasswordVisible = !isPasswordVisible;
+      pwdElem.innerText = isPasswordVisible ? "ExnessPass123" : "••••••••";
+    }
+
+    function handleSaveAccountDetails(e) {
+      e.preventDefault();
+      showToast("Account details updated");
     }
 
     function handleSaveBrokerAccount(e) {
       e.preventDefault();
       if (!currentUid) return;
+      const server = document.getElementById('broker-server').value;
+      const login = document.getElementById('broker-login').value;
+      const pass = document.getElementById('broker-password').value;
+
       window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
-        brokerServer: document.getElementById('broker-server').value,
-        brokerLogin: document.getElementById('broker-login').value,
-        brokerPassword: document.getElementById('broker-password').value
+        brokerServer: server,
+        brokerLogin: login,
+        brokerPassword: pass
       });
-      showToast("Broker login details saved successfully");
+      showToast("Broker login details saved");
+    }
+
+    window.listenToUserData = function(user) {
+      currentUid = user.uid;
+      document.getElementById('auth-section').classList.add('hidden');
+      document.getElementById('portal-section').classList.remove('hidden');
+
+      const userRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + user.uid);
+      window.rtdbMethods.onValue(userRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          document.getElementById('display-user-name').innerText = data.name || user.email;
+          document.getElementById('display-user-plan').innerText = (data.plan || 'BRONZE').toUpperCase();
+          document.getElementById('card-plan-name').innerText = data.plan ? data.plan.toUpperCase() : 'Bronze';
+          
+          const prices = { pro: '$50 per month', bronze: '$100 per month', platinum: '$250 per month' };
+          document.getElementById('card-plan-price').innerText = prices[data.plan] || '$100 per month';
+
+          const statusElem = document.getElementById('display-user-status');
+          const alertBox = document.getElementById('payment-pending-alert');
+
+          if (data.status === 'active') {
+            statusElem.className = "px-3 py-1 rounded-full text-xs font-semibold bg-activeBg text-activeText";
+            statusElem.innerText = "Active";
+            alertBox.classList.add('hidden');
+          } else {
+            statusElem.className = "px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
+            statusElem.innerText = "Payment Pending";
+            alertBox.classList.remove('hidden');
+          }
+
+          if (data.brokerServer) {
+            document.getElementById('display-broker-server-val').innerText = data.brokerServer;
+            document.getElementById('display-broker-login-id').innerText = data.brokerLogin || '--';
+          }
+
+          isBotRunning = !!data.botRunning;
+          updateBotUI(isBotRunning);
+        } else {
+          window.rtdbMethods.set(userRef, {
+            email: user.email,
+            name: user.displayName || user.email.split('@')[0],
+            plan: 'bronze',
+            status: 'pending',
+            botRunning: false,
+            createdAt: new Date().toISOString()
+          });
+        }
+      });
+    };
+
+    function updateBotUI(running) {
+      const badge = document.getElementById('bot-status-badge');
+      const dot = document.getElementById('bot-status-dot');
+      const text = document.getElementById('bot-status-text');
+      const btn = document.getElementById('bot-toggle-btn');
+      const btnText = document.getElementById('bot-btn-text');
+      const btnIcon = document.getElementById('bot-btn-icon');
+
+      if (running) {
+        badge.className = "px-3 py-1 rounded-full text-xs font-medium bg-activeBg text-activeText flex items-center gap-1.5";
+        dot.className = "w-2 h-2 rounded-full bg-emerald-600 animate-pulse";
+        text.innerText = "Bot running";
+
+        btn.className = "px-5 py-2.5 rounded-full bg-[#3B1919] hover:bg-[#4E2222] text-white text-xs font-medium transition flex items-center gap-2 shadow-sm";
+        btnText.innerText = "Stop bot";
+        btnIcon.innerHTML = `<rect x="6" y="6" width="12" height="12" rx="1"/>`;
+      } else {
+        badge.className = "px-3 py-1 rounded-full text-xs font-medium bg-[#E8DDD1] text-forest flex items-center gap-1.5";
+        dot.className = "w-2 h-2 rounded-full bg-stone-400";
+        text.innerText = "Bot stopped";
+
+        btn.className = "px-5 py-2.5 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition flex items-center gap-2 shadow-sm";
+        btnText.innerText = "Start bot";
+        btnIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      }
     }
 
     function handleEmailLogin(e) {
       e.preventDefault();
-      window.fbAuthMethods.signInWithEmailAndPassword(window.firebaseAuth, document.getElementById('login-email').value, document.getElementById('login-password').value)
-        .catch(err => showToast(err.message));
+      const email = document.getElementById('login-email').value;
+      const pass = document.getElementById('login-password').value;
+      window.fbAuthMethods.signInWithEmailAndPassword(window.firebaseAuth, email, pass)
+        .catch(err => showToast(err.message, false));
     }
 
     function handleEmailRegister(e) {
       e.preventDefault();
-      window.fbAuthMethods.createUserWithEmailAndPassword(window.firebaseAuth, document.getElementById('register-email').value, document.getElementById('register-password').value)
-        .then(res => {
-          window.rtdbMethods.set(window.rtdbMethods.ref(window.firebaseDb, 'users/' + res.user.uid), {
-            name: document.getElementById('register-name').value,
-            email: document.getElementById('register-email').value,
+      const name = document.getElementById('register-name').value;
+      const email = document.getElementById('register-email').value;
+      const pass = document.getElementById('register-password').value;
+      window.fbAuthMethods.createUserWithEmailAndPassword(window.firebaseAuth, email, pass)
+        .then((cred) => {
+          window.rtdbMethods.set(window.rtdbMethods.ref(window.firebaseDb, 'users/' + cred.user.uid), {
+            name: name,
+            email: email,
             plan: 'bronze',
             status: 'pending',
             botRunning: false
           });
-        }).catch(err => showToast(err.message));
+        })
+        .catch(err => showToast(err.message, false));
     }
 
     function handleGoogleSignIn() {
-      window.fbAuthMethods.signInWithPopup(window.firebaseAuth, window.googleProvider).catch(err => showToast(err.message));
+      window.fbAuthMethods.signInWithPopup(window.firebaseAuth, window.googleProvider)
+        .catch(err => showToast(err.message, false));
     }
 
     function handleSignOut() {
       window.fbAuthMethods.signOut(window.firebaseAuth);
-    }
-
-    function showToast(msg) {
-      const c = document.getElementById('toast-container');
-      document.getElementById('toast-message').innerText = msg;
-      c.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
-      c.classList.add('opacity-100', 'translate-y-0');
-      setTimeout(() => c.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4'), 3000);
     }
   </script>
 </body>
