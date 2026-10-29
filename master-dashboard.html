@@ -16,7 +16,7 @@
     import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw", // Insert your API key here
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
       authDomain: "vee-fxx.firebaseapp.com",
       databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "vee-fxx",
@@ -31,7 +31,6 @@
     window.rtdb = rtdb;
     window.rtdbMethods = { ref, onValue, update };
 
-    // Listen to real-time client account changes
     onValue(ref(rtdb, 'users'), (snapshot) => {
       const usersData = snapshot.val();
       if (usersData) {
@@ -72,7 +71,7 @@
       padding: 20px 16px 40px;
     }
 
-    .container { max-width: 680px; margin: 0 auto; }
+    .container { max-width: 720px; margin: 0 auto; }
 
     .top-brand-bar { display: flex; align-items: center; padding: 8px 0 24px; }
     .brand-logo { display: flex; align-items: center; gap: 12px; }
@@ -120,7 +119,7 @@
     }
 
     .table-scroll-container { overflow-x: auto; max-height: 480px; overflow-y: auto; }
-    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 520px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
 
     th {
       font-size: 13px; font-weight: 600; color: #5C5446; padding: 16px 18px;
@@ -166,13 +165,13 @@
 
     .btn-start {
       background-color: var(--accent-green); color: #FFFFFF; border: none;
-      border-radius: 9999px; padding: 8px 18px; font-size: 13px; font-weight: 600;
+      border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
       cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
     }
 
     .btn-stop {
       background-color: #8C4339; color: #FFFFFF; border: none;
-      border-radius: 9999px; padding: 8px 18px; font-size: 13px; font-weight: 600;
+      border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
       cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
     }
 
@@ -222,10 +221,10 @@
     </div>
 
     <!-- Accounts Table -->
-    <h2 class="section-title">All client accounts</h2>
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">All client subscriptions</h2>
     <div class="table-card">
       <div class="table-scroll-container">
-        <table id="accounts-table">
+        <table>
           <thead>
             <tr>
               <th>Client</th>
@@ -242,8 +241,30 @@
       </div>
     </div>
 
-    <!-- Client Bot Accounts Table -->
-    <h2 class="section-title">Client Bot Operations</h2>
+    <!-- Payment History Table (Real-time Synchronized across User & Master) -->
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Payment History & Confirmations</h2>
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Plan Requested</th>
+              <th>Amount</th>
+              <th>Date / Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="payments-tbody">
+            <!-- Dynamically populated payment submissions -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Client Bot Accounts Table (With Viewable Sent Passwords) -->
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Client Bot Operations & Credentials</h2>
     <div class="table-card">
       <div class="table-scroll-container">
         <table>
@@ -252,13 +273,13 @@
               <th>Client</th>
               <th>Broker / Server</th>
               <th>Login</th>
-              <th>Password</th>
+              <th>Password (Sent)</th>
               <th>Bot Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody id="bots-tbody">
-            <!-- Dynamically populated from Firebase -->
+            <!-- Dynamically populated from Firebase with clear passwords -->
           </tbody>
         </table>
       </div>
@@ -281,13 +302,16 @@
   <script>
     let activeUid = null;
     let localUsers = {};
+    let masterVisiblePasswords = {};
 
     window.renderMasterDashboard = function(users) {
       localUsers = users;
       const accountsTbody = document.getElementById('accounts-tbody');
+      const paymentsTbody = document.getElementById('payments-tbody');
       const botsTbody = document.getElementById('bots-tbody');
 
       accountsTbody.innerHTML = '';
+      paymentsTbody.innerHTML = '';
       botsTbody.innerHTML = '';
 
       let proCount = 0, bronzeCount = 0, platinumCount = 0;
@@ -312,7 +336,7 @@
           pendingCount++;
         }
 
-        // Render main account row
+        // Render main account subscription row
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
@@ -326,32 +350,91 @@
         `;
         accountsTbody.appendChild(tr);
 
-        // Render bot row
-        const botTr = document.createElement('tr');
-        botTr.innerHTML = `
-          <td>
-            <div class="user-name">${u.name || 'User'}</div>
-            <div class="user-email">${u.email || ''}</div>
-          </td>
-          <td>
-            <div class="user-name">${u.brokerServer || 'Not set'}</div>
-            <div class="user-email">${u.brokerPlatform || 'MT5'}</div>
-          </td>
-          <td>${u.brokerLogin || '--'}</td>
-          <td>••••••••</td>
-          <td>
-            <span class="pill ${u.botRunning ? 'pill-status-active' : 'pill-status-pending'}">
-              ${u.botRunning ? 'Running' : 'Stopped'}
-            </span>
-          </td>
-          <td>
-            <button class="${u.botRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', ${!u.botRunning})">
-              ${u.botRunning ? 'Stop' : 'Start'}
-            </button>
-          </td>
-        `;
-        botsTbody.appendChild(botTr);
+        // Render payment history rows
+        const payments = u.payments || {};
+        const paymentKeys = Object.keys(payments);
+        if (paymentKeys.length > 0) {
+          paymentKeys.forEach(pId => {
+            const p = payments[pId];
+            const payTr = document.createElement('tr');
+            payTr.innerHTML = `
+              <td>
+                <div class="user-name">${u.name || 'User'}</div>
+                <div class="user-email">${u.email || ''}</div>
+              </td>
+              <td><span class="pill pill-${(p.plan || 'bronze').toLowerCase()}">${(p.plan || 'bronze').toUpperCase()}</span></td>
+              <td style="font-weight:600;">$${p.amount || 0}</td>
+              <div class="user-email">${new Date(p.date).toLocaleString()}</div>
+              <td><span class="pill ${p.status === 'active' ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
+              <td>
+                <button class="btn-start" style="padding:4px 10px; font-size:11px;" onclick="approvePayment('${uid}', '${pId}')">
+                  Confirm Payment
+                </button>
+              </td>
+            `;
+            paymentsTbody.appendChild(payTr);
+          });
+        }
+
+        // Render broker bot accounts (supporting multiple per client)
+        const accounts = u.accounts || {};
+        const accKeys = Object.keys(accounts);
+
+        if (accKeys.length === 0) {
+          const botTr = document.createElement('tr');
+          botTr.innerHTML = `
+            <td>
+              <div class="user-name">${u.name || 'User'}</div>
+              <div class="user-email">${u.email || ''}</div>
+            </td>
+            <td colspan="5" style="color: #908474; font-style: italic;">No broker accounts configured yet</td>
+          `;
+          botsTbody.appendChild(botTr);
+        } else {
+          accKeys.forEach(accId => {
+            const acc = accounts[accId];
+            const isRunning = !!acc.botRunning;
+            const pwdKey = `${uid}_${accId}`;
+            const showPwd = !!masterVisiblePasswords[pwdKey];
+
+            const botTr = document.createElement('tr');
+            botTr.innerHTML = `
+              <td>
+                <div class="user-name">${u.name || 'User'}</div>
+                <div class="user-email">${acc.name || 'Account'}</div>
+              </td>
+              <td>
+                <div class="user-name">${acc.broker || 'Not set'}</div>
+                <div class="user-email">${acc.server || ''} (${acc.platform || 'MT5'})</div>
+              </td>
+              <td>${acc.login || '--'}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: monospace; font-weight: 600;">${showPwd ? (acc.password || '') : '••••••••'}</span>
+                  <button onclick="toggleMasterPassword('${pwdKey}')" style="background:none; border:none; cursor:pointer; color:#6B7280; font-size:12px; text-decoration:underline;">
+                    ${showPwd ? 'Hide' : 'View'}
+                  </button>
+                </div>
+              </td>
+              <td>
+                <span class="pill ${isRunning ? 'pill-status-active' : 'pill-status-pending'}">
+                  ${isRunning ? 'Running' : 'Stopped'}
+                </span>
+              </td>
+              <td>
+                <button class="${isRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', '${accId}', ${!isRunning})">
+                  ${isRunning ? 'Stop' : 'Start'}
+                </button>
+              </td>
+            `;
+            botsTbody.appendChild(botTr);
+          });
+        }
       });
+
+      if (paymentsTbody.children.length === 0) {
+        paymentsTbody.innerHTML = `<tr><td colspan="6" style="color: #908474; font-style: italic;">No payment submissions recorded yet.</td></tr>`;
+      }
 
       document.getElementById('stat-pro-count').textContent = proCount;
       document.getElementById('stat-bronze-count').textContent = bronzeCount;
@@ -362,6 +445,11 @@
       document.getElementById('stat-pending-accounts').textContent = pendingCount;
       document.getElementById('stat-monthly-revenue').textContent = '$' + monthlyTotal;
     };
+
+    function toggleMasterPassword(pwdKey) {
+      masterVisiblePasswords[pwdKey] = !masterVisiblePasswords[pwdKey];
+      renderMasterDashboard(localUsers);
+    }
 
     function toggleDropdown(event, uid) {
       event.stopPropagation();
@@ -393,12 +481,16 @@
       closeDropdown();
     }
 
-    function toggleBot(uid, newState) {
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + uid), {
+    function approvePayment(uid, pId) {
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { status: 'active' });
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { status: 'active' });
+    }
+
+    function toggleBot(uid, accId, newState) {
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/accounts/${accId}`), {
         botRunning: newState
       });
     }
   </script>
 </body>
 </html>
-
