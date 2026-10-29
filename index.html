@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -291,7 +290,7 @@
             My account
           </button>
           <button onclick="switchTab('plans')" id="nav-plans" class="px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60 transition">
-            Plans
+            Plans & Payment
           </button>
         </div>
       </div>
@@ -316,7 +315,7 @@
             <!-- PAYMENT ALERT BAR IF PENDING -->
             <div id="payment-pending-alert" class="mt-4 p-4 rounded-2xl bg-[#FAF5EE] border border-[#E8DED5] text-xs text-forest space-y-2">
               <div class="font-semibold" id="banner-status-text">Your plan is waiting for payment confirmation. It becomes active as soon as your payment is confirmed.</div>
-              <button onclick="switchTab('plans')" class="mt-2 px-3.5 py-1.5 rounded-full bg-forest text-white font-medium text-[11px]">View Payment Details</button>
+              <button onclick="switchTab('plans')" class="mt-2 px-3.5 py-1.5 rounded-full bg-forest text-white font-medium text-[11px]">Submit Payment Reference</button>
             </div>
 
             <button onclick="switchTab('plans')" class="mt-4 px-4 py-2 rounded-2xl border border-cardBorder bg-cardCream text-forest text-xs font-medium hover:bg-stone-200/50 transition">
@@ -403,8 +402,8 @@
                 </div>
 
                 <div>
-                  <label class="block text-xs font-semibold text-forest mb-1.5">Notes</label>
-                  <textarea id="acc-notes" rows="3" class="w-full px-4 py-2.5 input-field text-xs" placeholder="Anything you'd like Titan to know about your account"></textarea>
+                  <label class="block text-xs font-semibold text-forest mb-1.5">TID / Payment Proof Notes</label>
+                  <textarea id="acc-notes" rows="3" class="w-full px-4 py-2.5 input-field text-xs" placeholder="Transaction TID or payment confirmation reference"></textarea>
                 </div>
 
                 <button type="submit" class="px-5 py-2.5 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm">
@@ -417,7 +416,7 @@
         </div>
 
 
-        <!-- TAB CONTENT 2: SUBSCRIPTION PLANS & EXACT PAYMENT DETAILS -->
+        <!-- TAB CONTENT 2: SUBSCRIPTION PLANS & PAYMENT SUBMISSION -->
         <div id="tab-content-plans" class="space-y-6 hidden">
           <div>
             <div class="text-[11px] font-bold uppercase tracking-widest text-mutedText mb-1">SUBSCRIPTIONS</div>
@@ -498,10 +497,10 @@
 
           </div>
 
-          <!-- EXACT HOW TO PAY PAYMENT DETAILS PANEL -->
+          <!-- EXACT HOW TO PAY & SUBMIT PAYMENT PROOF -->
           <div class="glass-card p-6 space-y-4 mt-6">
             <h3 class="font-serif text-2xl text-forest font-normal">How to pay</h3>
-            <p class="text-xs text-mutedText leading-relaxed">Send the amount to any account below, then your plan is activated once the payment is confirmed.</p>
+            <p class="text-xs text-mutedText leading-relaxed">Send the amount to any account below, fill in your payment proof reference, and submit for master confirmation.</p>
             
             <div class="payment-sub-card space-y-1">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-mutedText">
@@ -530,9 +529,38 @@
               <div class="text-xs text-mutedText">USDT TRC20 wallet</div>
             </div>
 
-            <button id="plan-checkout-btn" onclick="submitSubscriptionRequest()" class="w-full py-3 px-4 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm mt-2">
-              Continue with Bronze — $100
-            </button>
+            <!-- PAYMENT SUBMISSION INPUT FIELDS -->
+            <div class="pt-4 space-y-3 border-t border-cardBorder">
+              <h4 class="font-serif text-lg font-semibold text-forest">Submit Payment Confirmation Details</h4>
+              
+              <div>
+                <label class="block text-xs font-semibold text-forest mb-1">Payment Method Used</label>
+                <select id="pay-method-select" onchange="togglePayMethodInput()" class="w-full px-3.5 py-2.5 input-field text-xs bg-cardCream">
+                  <option value="phone">Mobile Money Phone Number</option>
+                  <option value="binance">Binance Account / Wallet Email</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-forest mb-1" id="pay-sender-label">Sender Phone Number</label>
+                <input type="text" id="pay-sender-identifier" required class="w-full px-3.5 py-2.5 input-field text-xs" placeholder="e.g. 0780000000">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-forest mb-1">Contact Name</label>
+                <input type="text" id="pay-contact-name" required class="w-full px-3.5 py-2.5 input-field text-xs" placeholder="Your full name">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-forest mb-1">Transaction ID (TID) / Confirmation Ref</label>
+                <input type="text" id="pay-tid-ref" required class="w-full px-3.5 py-2.5 input-field text-xs" placeholder="e.g. 18273645920 or Binance TxID">
+              </div>
+
+              <button id="plan-checkout-btn" onclick="submitSubscriptionRequest()" class="w-full py-3 px-4 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm mt-2">
+                Submit Payment for Bronze — $100
+              </button>
+            </div>
+
           </div>
 
         </div>
@@ -675,9 +703,22 @@
         }
       });
 
-      if (planKey === 'pro') btn.innerText = 'Continue with Pro — $50';
-      if (planKey === 'bronze') btn.innerText = 'Continue with Bronze — $100';
-      if (planKey === 'platinum') btn.innerText = 'Continue with Platinum — $250';
+      if (planKey === 'pro') btn.innerText = 'Submit Payment for Pro — $50';
+      if (planKey === 'bronze') btn.innerText = 'Submit Payment for Bronze — $100';
+      if (planKey === 'platinum') btn.innerText = 'Submit Payment for Platinum — $250';
+    }
+
+    function togglePayMethodInput() {
+      const method = document.getElementById('pay-method-select').value;
+      const label = document.getElementById('pay-sender-label');
+      const input = document.getElementById('pay-sender-identifier');
+      if (method === 'phone') {
+        label.innerText = 'Sender Phone Number';
+        input.placeholder = 'e.g. 0780000000';
+      } else {
+        label.innerText = 'Sender Binance Wallet / Email';
+        input.placeholder = 'e.g. binance@example.com / Wallet ID';
+      }
     }
 
     function copyToClipboard(text) {
@@ -690,9 +731,22 @@
       const prices = { pro: 50, bronze: 100, platinum: 250 };
       const amount = prices[currentUserPlan] || 100;
 
+      const method = document.getElementById('pay-method-select').value;
+      const sender = document.getElementById('pay-sender-identifier').value.trim();
+      const contact = document.getElementById('pay-contact-name').value.trim();
+      const tid = document.getElementById('pay-tid-ref').value.trim();
+
+      if (!sender || !contact || !tid) {
+        showToast("Please fill in sender detail, contact name, and TID reference", false);
+        return;
+      }
+
       window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
         plan: currentUserPlan,
-        status: 'pending'
+        status: 'pending',
+        contactName: contact,
+        phone: sender,
+        notes: `TID: ${tid} | Method: ${method}`
       });
 
       const paymentRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid + '/payments');
@@ -701,10 +755,14 @@
         plan: currentUserPlan,
         amount: amount,
         date: new Date().toISOString(),
-        status: 'pending'
+        status: 'pending',
+        method: method,
+        senderIdentifier: sender,
+        contactName: contact,
+        tid: tid
       });
 
-      showToast(`Subscription set to ${currentUserPlan.toUpperCase()}. Pending payment confirmation.`);
+      showToast(`Payment reference for ${currentUserPlan.toUpperCase()} submitted! Awaiting master approval.`);
       switchTab('account');
     }
 
@@ -878,6 +936,18 @@
             alertBox.classList.remove('hidden');
           }
 
+          if (data.startedDate) {
+            document.getElementById('card-started-date').innerText = new Date(data.startedDate).toLocaleString();
+          } else {
+            document.getElementById('card-started-date').innerText = "Pending";
+          }
+
+          if (data.renewalDate) {
+            document.getElementById('card-renewal-date').innerText = new Date(data.renewalDate).toLocaleString();
+          } else {
+            document.getElementById('card-renewal-date').innerText = "Pending";
+          }
+
           currentAccounts = data.accounts || {};
           renderAccountsList(currentAccounts);
           renderPaymentHistory(data.payments || {});
@@ -988,6 +1058,7 @@
           <div>
             <div class="font-semibold text-forest uppercase">${p.plan || 'Plan'} — $${p.amount || 0}</div>
             <div class="text-[10px] text-mutedText">${new Date(p.date).toLocaleString()}</div>
+            <div class="text-[10px] text-mutedText font-mono mt-0.5">Ref: ${p.tid || 'Pending'} (${p.method || 'payment'})</div>
           </div>
           <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold ${p.status === 'active' ? 'bg-activeBg text-activeText' : 'bg-amber-100 text-amber-800'}">${p.status || 'pending'}</span>
         `;
