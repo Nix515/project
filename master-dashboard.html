@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TITAN - Master Dashboard</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase v11 Realtime Sync -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw", // Insert your API key here
+      authDomain: "vee-fxx.firebaseapp.com",
+      databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "vee-fxx",
+      storageBucket: "vee-fxx.firebasestorage.app",
+      messagingSenderId: "924394563283",
+      appId: "1:924394563283:web:cfd15221909ad761f39626",
+      measurementId: "G-XSSW65TWEE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const rtdb = getDatabase(app);
+    window.rtdb = rtdb;
+    window.rtdbMethods = { ref, onValue, update };
+
+    // Listen to real-time client account changes
+    onValue(ref(rtdb, 'users'), (snapshot) => {
+      const usersData = snapshot.val();
+      if (usersData) {
+        window.renderMasterDashboard(usersData);
+      }
+    });
+  </script>
+
+  <style>
+    :root {
+      --bg-color: #FBECE1;
+      --card-bg: #FAF5EE;
+      --card-border: #EADBCE;
+      --text-dark: #0D331D;
+      --text-muted: #6B7280;
+      --accent-green: #0D331D;
+      --accent-green-hover: #14492A;
+      
+      --badge-active-bg: #E3EBDD;
+      --badge-active-text: #5A744C;
+      --badge-pending-bg: #F8DDD9;
+      --badge-pending-text: #8C4339;
+      --badge-bronze-bg: #F5E5DC;
+      --badge-bronze-text: #6A483B;
+      --badge-pro-bg: #EAE6D6;
+      --badge-pro-text: #5C583F;
+      --badge-platinum-bg: #0D331D;
+      --badge-platinum-text: #EBF3ED;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+    }
+
+    .container { max-width: 680px; margin: 0 auto; }
+
+    .top-brand-bar { display: flex; align-items: center; padding: 8px 0 24px; }
+    .brand-logo { display: flex; align-items: center; gap: 12px; }
+    .brand-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background-color: #EBDAD0; color: var(--text-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Newsreader', serif; font-size: 18px; font-weight: 500;
+    }
+    .brand-title {
+      font-family: 'Newsreader', serif; font-size: 22px; font-weight: 500;
+      letter-spacing: 1.5px; color: var(--text-dark);
+    }
+
+    .section-header-eyebrow {
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: #908474; font-weight: 600; margin-bottom: 6px;
+    }
+
+    .main-title {
+      font-family: 'Newsreader', serif; font-size: 34px; font-weight: 400;
+      line-height: 1.15; color: var(--text-dark); margin-bottom: 8px;
+    }
+
+    .main-subtitle { font-size: 14px; color: #71695C; margin-bottom: 20px; }
+
+    .plan-breakdown { display: flex; gap: 24px; margin-bottom: 24px; }
+    .plan-stat { display: flex; flex-direction: column; gap: 4px; }
+    .plan-stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
+    .plan-stat-value { font-family: 'Newsreader', serif; font-size: 26px; color: var(--text-dark); }
+
+    .cards-stack { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+    .metric-card {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 22px 24px; position: relative;
+    }
+
+    .metric-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
+    .metric-value { font-family: 'Newsreader', serif; font-size: 38px; font-weight: 400; color: var(--text-dark); line-height: 1; }
+
+    .table-card {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; overflow: hidden; margin-bottom: 36px; position: relative;
+    }
+
+    .table-scroll-container { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 520px; }
+
+    th {
+      font-size: 13px; font-weight: 600; color: #5C5446; padding: 16px 18px;
+      border-bottom: 1px solid var(--card-border); background-color: var(--card-bg);
+      position: sticky; top: 0; z-index: 2;
+    }
+
+    td { padding: 14px 18px; border-bottom: 1px solid #EFEBDE; font-size: 13px; vertical-align: middle; }
+
+    .user-name { font-weight: 600; color: var(--text-dark); font-size: 14px; margin-bottom: 2px; }
+    .user-email { font-size: 12px; color: #7A7263; }
+
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 6px 14px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;
+    }
+
+    .pill-bronze { background-color: var(--badge-bronze-bg); color: var(--badge-bronze-text); }
+    .pill-pro { background-color: var(--badge-pro-bg); color: var(--badge-pro-text); }
+    .pill-platinum { background-color: var(--badge-platinum-bg); color: var(--badge-platinum-text); }
+
+    .pill-status-active { background-color: var(--badge-active-bg); color: var(--badge-active-text); font-weight: 600; text-transform: capitalize; }
+    .pill-status-pending { background-color: var(--badge-pending-bg); color: var(--badge-pending-text); font-weight: 600; text-transform: capitalize; padding: 6px 12px; }
+
+    .action-btn {
+      background: none; border: none; cursor: pointer; padding: 6px 10px;
+      border-radius: 50%; color: var(--text-dark); font-size: 18px; font-weight: bold;
+    }
+
+    .dropdown-menu {
+      display: none; position: absolute; background-color: #FAF6F0;
+      border: 1px solid #E2D7C8; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      width: 230px; z-index: 100; overflow: hidden; padding: 8px 0;
+    }
+    .dropdown-menu.active { display: block; }
+
+    .dropdown-item {
+      display: block; width: 100%; text-align: left; padding: 10px 18px;
+      background: none; border: none; font-size: 13px; color: #36322B; cursor: pointer;
+    }
+    .dropdown-item:hover { background-color: #EFE8DC; }
+
+    .btn-start {
+      background-color: var(--accent-green); color: #FFFFFF; border: none;
+      border-radius: 9999px; padding: 8px 18px; font-size: 13px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .btn-stop {
+      background-color: #8C4339; color: #FFFFFF; border: none;
+      border-radius: 9999px; padding: 8px 18px; font-size: 13px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .overlay-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; }
+    .overlay-backdrop.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header class="top-brand-bar">
+      <div class="brand-logo">
+        <div class="brand-avatar">T</div>
+        <span class="brand-title">TITAN</span>
+      </div>
+    </header>
+
+    <div class="section-header-eyebrow">MASTER DASHBOARD</div>
+    <h1 class="main-title">Client accounts</h1>
+    <p class="main-subtitle">Live real-time accounts connected from user portal.</p>
+
+    <!-- Plan Counts Breakdown -->
+    <div class="plan-breakdown">
+      <div class="plan-stat"><span class="plan-stat-label">PRO</span><span class="plan-stat-value" id="stat-pro-count">0</span></div>
+      <div class="plan-stat"><span class="plan-stat-label">BRONZE</span><span class="plan-stat-value" id="stat-bronze-count">0</span></div>
+      <div class="plan-stat"><span class="plan-stat-label">PLATINUM</span><span class="plan-stat-value" id="stat-platinum-count">0</span></div>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <div class="cards-stack">
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">CLIENT ACCOUNTS</span></div>
+        <div class="metric-value" id="stat-total-accounts">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">ACTIVE</span></div>
+        <div class="metric-value" id="stat-active-accounts">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">PAYMENT PENDING</span></div>
+        <div class="metric-value" id="stat-pending-accounts">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">MONTHLY RECURRING</span></div>
+        <div class="metric-value" id="stat-monthly-revenue">$0</div>
+      </div>
+    </div>
+
+    <!-- Accounts Table -->
+    <h2 class="section-title">All client accounts</h2>
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table id="accounts-table">
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Monthly</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-tbody">
+            <!-- Dynamically populated from Firebase -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Client Bot Accounts Table -->
+    <h2 class="section-title">Client Bot Operations</h2>
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Broker / Server</th>
+              <th>Login</th>
+              <th>Password</th>
+              <th>Bot Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bots-tbody">
+            <!-- Dynamically populated from Firebase -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reusable Action Menu -->
+  <div class="dropdown-menu" id="actionDropdown">
+    <button class="dropdown-item" onclick="executeAction('approve')">Approve subscription</button>
+    <button class="dropdown-item" onclick="executeAction('pending')">Mark payment pending</button>
+    <div style="height:1px; background:#E2D7C8; margin:6px 0;"></div>
+    <button class="dropdown-item" onclick="executeAction('pro')">Set Pro ($50)</button>
+    <button class="dropdown-item" onclick="executeAction('bronze')">Set Bronze ($100)</button>
+    <button class="dropdown-item" onclick="executeAction('platinum')">Set Platinum ($250)</button>
+  </div>
+
+  <div class="overlay-backdrop" id="backdrop" onclick="closeDropdown()"></div>
+
+  <script>
+    let activeUid = null;
+    let localUsers = {};
+
+    window.renderMasterDashboard = function(users) {
+      localUsers = users;
+      const accountsTbody = document.getElementById('accounts-tbody');
+      const botsTbody = document.getElementById('bots-tbody');
+
+      accountsTbody.innerHTML = '';
+      botsTbody.innerHTML = '';
+
+      let proCount = 0, bronzeCount = 0, platinumCount = 0;
+      let activeCount = 0, pendingCount = 0, totalAccounts = 0, monthlyTotal = 0;
+
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+
+      Object.keys(users).forEach(uid => {
+        const u = users[uid];
+        totalAccounts++;
+
+        const plan = (u.plan || 'bronze').toLowerCase();
+        if (plan === 'pro') proCount++;
+        if (plan === 'bronze') bronzeCount++;
+        if (plan === 'platinum') platinumCount++;
+
+        const isActive = u.status === 'active';
+        if (isActive) {
+          activeCount++;
+          monthlyTotal += (prices[plan] || 100);
+        } else {
+          pendingCount++;
+        }
+
+        // Render main account row
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="user-name">${u.name || 'Unnamed User'}</div>
+            <div class="user-email">${u.email || uid}</div>
+          </td>
+          <td><span class="pill pill-${plan}">${plan.toUpperCase()}</span></td>
+          <td><span class="pill ${isActive ? 'pill-status-active' : 'pill-status-pending'}">${u.status || 'pending'}</span></td>
+          <td style="font-weight:600;">$${prices[plan] || 100}</td>
+          <td><button class="action-btn" onclick="toggleDropdown(event, '${uid}')">&#8226;&#8226;&#8226;</button></td>
+        `;
+        accountsTbody.appendChild(tr);
+
+        // Render bot row
+        const botTr = document.createElement('tr');
+        botTr.innerHTML = `
+          <td>
+            <div class="user-name">${u.name || 'User'}</div>
+            <div class="user-email">${u.email || ''}</div>
+          </td>
+          <td>
+            <div class="user-name">${u.brokerServer || 'Not set'}</div>
+            <div class="user-email">${u.brokerPlatform || 'MT5'}</div>
+          </td>
+          <td>${u.brokerLogin || '--'}</td>
+          <td>••••••••</td>
+          <td>
+            <span class="pill ${u.botRunning ? 'pill-status-active' : 'pill-status-pending'}">
+              ${u.botRunning ? 'Running' : 'Stopped'}
+            </span>
+          </td>
+          <td>
+            <button class="${u.botRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', ${!u.botRunning})">
+              ${u.botRunning ? 'Stop' : 'Start'}
+            </button>
+          </td>
+        `;
+        botsTbody.appendChild(botTr);
+      });
+
+      document.getElementById('stat-pro-count').textContent = proCount;
+      document.getElementById('stat-bronze-count').textContent = bronzeCount;
+      document.getElementById('stat-platinum-count').textContent = platinumCount;
+
+      document.getElementById('stat-total-accounts').textContent = totalAccounts;
+      document.getElementById('stat-active-accounts').textContent = activeCount;
+      document.getElementById('stat-pending-accounts').textContent = pendingCount;
+      document.getElementById('stat-monthly-revenue').textContent = '$' + monthlyTotal;
+    };
+
+    function toggleDropdown(event, uid) {
+      event.stopPropagation();
+      activeUid = uid;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const dropdown = document.getElementById('actionDropdown');
+      dropdown.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+      dropdown.style.left = Math.min(rect.left - 170, window.innerWidth - 240) + 'px';
+      dropdown.classList.add('active');
+      document.getElementById('backdrop').classList.add('active');
+    }
+
+    function closeDropdown() {
+      document.getElementById('actionDropdown').classList.remove('active');
+      document.getElementById('backdrop').classList.remove('active');
+      activeUid = null;
+    }
+
+    function executeAction(action) {
+      if (!activeUid) return;
+      const updates = {};
+      if (action === 'approve') updates.status = 'active';
+      if (action === 'pending') updates.status = 'pending';
+      if (action === 'pro') updates.plan = 'pro';
+      if (action === 'bronze') updates.plan = 'bronze';
+      if (action === 'platinum') updates.plan = 'platinum';
+
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
+      closeDropdown();
+    }
+
+    function toggleBot(uid, newState) {
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + uid), {
+        botRunning: newState
+      });
+    }
+  </script>
+</body>
+</html>
+
