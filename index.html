@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,10 +44,10 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getDatabase, ref, set, get, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { getDatabase, ref, set, get, onValue, update, push, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw", // Insert your API key here
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
       authDomain: "vee-fxx.firebaseapp.com",
       databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "vee-fxx",
@@ -64,7 +65,7 @@
     window.firebaseAuth = auth;
     window.firebaseDb = rtdb;
     window.googleProvider = googleProvider;
-    window.rtdbMethods = { ref, set, get, onValue, update };
+    window.rtdbMethods = { ref, set, get, onValue, update, push, remove };
     window.fbAuthMethods = {
       signInWithEmailAndPassword,
       createUserWithEmailAndPassword,
@@ -73,7 +74,6 @@
       onAuthStateChanged
     };
 
-    // Global auth listener
     onAuthStateChanged(auth, (user) => {
       if (user) {
         window.listenToUserData(user);
@@ -157,13 +157,17 @@
       background: rgba(255, 255, 255, 0.22);
     }
 
-    /* Exact Screenshot Payment Sub-card Styling */
     .payment-sub-card {
       background: #FAF5EE;
       border: 1px solid rgba(13, 51, 29, 0.1);
       border-radius: 16px;
       padding: 16px;
       transition: all 0.2s ease;
+    }
+
+    .modal-backdrop {
+      background: rgba(13, 51, 29, 0.4);
+      backdrop-filter: blur(4px);
     }
   </style>
 </head>
@@ -349,68 +353,14 @@
               Add the MT4 or MT5 account the XAUUSD bot should trade, then start and stop the bot here.
             </p>
 
-            <button onclick="showToast('Broker account addition unlocked.')" class="px-4 py-2.5 rounded-full bg-forest text-white text-xs font-medium hover:bg-forestHover transition flex items-center gap-2 shadow-sm">
+            <button onclick="openAddAccountModal()" class="px-4 py-2.5 rounded-full bg-forest text-white text-xs font-medium hover:bg-forestHover transition flex items-center gap-2 shadow-sm">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
               Add account
             </button>
 
-            <!-- Active Broker Account Card -->
-            <div class="glass-card p-6 space-y-4">
-              <div class="flex items-center justify-between flex-wrap gap-2">
-                <div class="flex items-center gap-2">
-                  <span class="font-serif text-2xl text-forest font-medium" id="display-broker-title">Venom</span>
-                  <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EAE2D8] text-forest" id="display-broker-platform">MT5</span>
-                </div>
-                
-                <div id="bot-status-badge" class="px-3 py-1 rounded-full text-xs font-medium bg-[#E8DDD1] text-forest flex items-center gap-1.5">
-                  <span id="bot-status-dot" class="w-2 h-2 rounded-full bg-stone-400"></span>
-                  <span id="bot-status-text">Bot stopped</span>
-                </div>
-              </div>
-
-              <div class="text-xs text-mutedText" id="display-broker-server">
-                Exnessmt5real27 · Exness real5
-              </div>
-
-              <div class="flex items-center gap-4 py-1">
-                <button onclick="showToast('Edit account info')" class="text-forest/70 hover:text-forest">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 210.3H3v-3.572L16.732 3.732z"/></svg>
-                </button>
-                <button onclick="showToast('Delete requested')" class="text-red-700/70 hover:text-red-700">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                </button>
-              </div>
-
-              <div class="space-y-3 pt-2 text-xs">
-                <div>
-                  <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">SERVER</div>
-                  <div class="text-forest font-medium mt-0.5" id="display-broker-server-val">Exness real5</div>
-                </div>
-                <div>
-                  <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">LOGIN</div>
-                  <div class="text-forest font-medium mt-0.5" id="display-broker-login-id">11536363</div>
-                </div>
-                <div>
-                  <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">PASSWORD</div>
-                  <div class="flex items-center gap-2 mt-0.5">
-                    <span id="pwd-display" class="text-forest font-medium tracking-widest">••••••••</span>
-                    <button onclick="togglePasswordVisibility()" class="text-mutedText hover:text-forest">
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div class="pt-3">
-                <button id="bot-toggle-btn" onclick="toggleBotExecution()" class="px-5 py-2.5 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition flex items-center gap-2 shadow-sm">
-                  <svg id="bot-btn-icon" class="w-4 h-4 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                  <span id="bot-btn-text">Start bot</span>
-                </button>
-                <div id="bot-footer-desc" class="text-[11px] text-mutedText mt-2.5">
-                  The XAUUSD bot is idle on this account.
-                </div>
-              </div>
-
+            <!-- Dynamic Container for Broker Account Cards -->
+            <div id="broker-accounts-container" class="space-y-4">
+              <!-- Dynamically populated broker account cards -->
             </div>
           </div>
 
@@ -421,7 +371,7 @@
               <h2 class="font-serif text-2xl font-normal text-forest">Payment history</h2>
             </div>
 
-            <div class="glass-card p-5 text-xs text-mutedText">
+            <div id="payment-history-container" class="glass-card p-5 text-xs text-mutedText space-y-2">
               No payments recorded yet.
             </div>
           </div>
@@ -434,22 +384,22 @@
               <form onsubmit="handleSaveAccountDetails(event)" class="space-y-4">
                 <div>
                   <label class="block text-xs font-semibold text-forest mb-1.5">Account name</label>
-                  <input type="text" id="acc-name" value="Venom Bonaparte" class="w-full px-4 py-2.5 input-field text-xs">
+                  <input type="text" id="acc-name" class="w-full px-4 py-2.5 input-field text-xs">
                 </div>
 
                 <div>
                   <label class="block text-xs font-semibold text-forest mb-1.5">Contact name</label>
-                  <input type="text" id="contact-name" value="Venom Bonaparte" class="w-full px-4 py-2.5 input-field text-xs">
+                  <input type="text" id="contact-name" class="w-full px-4 py-2.5 input-field text-xs">
                 </div>
 
                 <div>
                   <label class="block text-xs font-semibold text-forest mb-1.5">Phone</label>
-                  <input type="tel" id="acc-phone" placeholder="" class="w-full px-4 py-2.5 input-field text-xs">
+                  <input type="tel" id="acc-phone" class="w-full px-4 py-2.5 input-field text-xs">
                 </div>
 
                 <div>
                   <label class="block text-xs font-semibold text-forest mb-1.5">Email</label>
-                  <input type="email" id="acc-email" value="venombonaparte46@gmail.com" class="w-full px-4 py-2.5 input-field text-xs">
+                  <input type="email" id="acc-email" class="w-full px-4 py-2.5 input-field text-xs">
                 </div>
 
                 <div>
@@ -486,24 +436,16 @@
                 </div>
               </div>
               <div class="plan-price text-3xl font-serif font-normal">$50 <span class="text-xs font-sans text-mutedText">/month</span></div>
-              <p class="plan-desc text-xs text-mutedText">Start running the XAUUSD bot on your own broker account.</p>
+              <p class="plan-desc text-xs text-mutedText">Start running the XAUUSD bot on 1 broker account.</p>
               
               <ul class="text-xs space-y-2.5 pt-1">
                 <li class="flex items-center gap-2.5">
                   <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  1 broker account (MT4 or MT5)
+                  1 broker account limit (MT4 or MT5)
                 </li>
                 <li class="flex items-center gap-2.5">
                   <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                   Start and stop the XAUUSD bot
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Subscription and payment history
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Email support
                 </li>
               </ul>
             </div>
@@ -517,24 +459,16 @@
                 </div>
               </div>
               <div class="plan-price text-3xl font-serif font-normal">$100 <span class="text-xs font-sans text-mutedText">/month</span></div>
-              <p class="plan-desc text-xs text-mutedText">Ideal for managing multiple client accounts under one setup.</p>
+              <p class="plan-desc text-xs text-mutedText">Ideal for managing up to 3 client accounts under one setup.</p>
 
               <ul class="text-xs space-y-2.5 pt-1">
                 <li class="flex items-center gap-2.5">
                   <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Up to 3 broker accounts
+                  Up to 3 broker accounts limit
                 </li>
                 <li class="flex items-center gap-2.5">
                   <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                   Start and stop the bot per account
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Renewal reminders
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <svg class="w-4 h-4 text-emerald-300 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Priority support
                 </li>
               </ul>
             </div>
@@ -548,7 +482,7 @@
                 </div>
               </div>
               <div class="plan-price text-3xl font-serif font-normal">$250 <span class="text-xs font-sans text-mutedText">/month</span></div>
-              <p class="plan-desc text-xs text-mutedText">For traders who want every account under the bot.</p>
+              <p class="plan-desc text-xs text-mutedText">For traders who want unlimited accounts under the bot.</p>
 
               <ul class="text-xs space-y-2.5 pt-1">
                 <li class="flex items-center gap-2.5">
@@ -559,25 +493,16 @@
                   <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
                   Start and stop the bot per account
                 </li>
-                <li class="flex items-center gap-2.5">
-                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Priority bot restarts
-                </li>
-                <li class="flex items-center gap-2.5">
-                  <svg class="w-4 h-4 text-emerald-700 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-                  Dedicated support
-                </li>
               </ul>
             </div>
 
           </div>
 
-          <!-- EXACT HOW TO PAY PAYMENT DETAILS PANEL (FROM SCREENSHOT) -->
+          <!-- EXACT HOW TO PAY PAYMENT DETAILS PANEL -->
           <div class="glass-card p-6 space-y-4 mt-6">
             <h3 class="font-serif text-2xl text-forest font-normal">How to pay</h3>
             <p class="text-xs text-mutedText leading-relaxed">Send the amount to any account below, then your plan is activated once the payment is confirmed.</p>
             
-            <!-- MTN MOBILE MONEY -->
             <div class="payment-sub-card space-y-1">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-mutedText">
                 <span>📱 MTN MOBILE MONEY</span>
@@ -587,7 +512,6 @@
               <div class="text-xs text-mutedText">Nakasiita Shakirah</div>
             </div>
 
-            <!-- AIRTEL MONEY -->
             <div class="payment-sub-card space-y-1">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-mutedText">
                 <span>📱 AIRTEL MONEY</span>
@@ -597,7 +521,6 @@
               <div class="text-xs text-mutedText">Nakalema Sumayah</div>
             </div>
 
-            <!-- BINANCE USDT TRC20 -->
             <div class="payment-sub-card space-y-1">
               <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-mutedText">
                 <span>🌐 BINANCE — USDT (TRC20)</span>
@@ -620,7 +543,71 @@
   </div>
 
 
-  <!-- ================= GLASSY TOAST NOTIFICATION POPUP ================= -->
+  <!-- ================= EDIT / ADD BROKER ACCOUNT MODAL ================= -->
+  <div id="broker-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-backdrop hidden">
+    <div class="bg-cardCream rounded-[24px] p-6 sm:p-8 w-full max-w-lg border border-cardBorder shadow-2xl max-h-[90vh] overflow-y-auto space-y-5">
+      <div class="flex items-center justify-between">
+        <h3 class="font-serif text-2xl text-forest font-normal" id="broker-modal-title">Edit broker account</h3>
+        <button onclick="closeBrokerModal()" class="text-mutedText hover:text-forest text-xl font-bold px-2">×</button>
+      </div>
+      <p class="text-xs text-mutedText leading-relaxed">
+        These are the trading credentials the XAUUSD bot uses. Only you and the Titan team can see them.
+      </p>
+
+      <form onsubmit="handleSaveBrokerModal(event)" class="space-y-4">
+        <input type="hidden" id="modal-account-id">
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Account name</label>
+          <input type="text" id="modal-acc-name" required class="w-full px-4 py-2.5 input-field text-xs" placeholder="e.g. Venom">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Broker</label>
+          <input type="text" id="modal-broker" required class="w-full px-4 py-2.5 input-field text-xs" placeholder="e.g. Exnessmt5real27">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Platform</label>
+          <select id="modal-platform" class="w-full px-4 py-2.5 input-field text-xs bg-cardCream">
+            <option value="MT5">MT5</option>
+            <option value="MT4">MT4</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Server</label>
+          <input type="text" id="modal-server" required class="w-full px-4 py-2.5 input-field text-xs" placeholder="e.g. Exness real5">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Login / account number</label>
+          <input type="text" id="modal-login" required class="w-full px-4 py-2.5 input-field text-xs" placeholder="e.g. 11536363">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Password</label>
+          <input type="password" id="modal-password" required class="w-full px-4 py-2.5 input-field text-xs" placeholder="••••••••">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-forest mb-1.5">Notes</label>
+          <textarea id="modal-notes" rows="3" class="w-full px-4 py-2.5 input-field text-xs" placeholder="Lot size, risk settings, anything the team should know"></textarea>
+        </div>
+
+        <div class="flex items-center gap-3 pt-2">
+          <button type="button" onclick="closeBrokerModal()" class="flex-1 py-3 px-4 rounded-full border border-cardBorder bg-cardCream text-forest text-xs font-medium hover:bg-stone-200/50 transition">
+            Cancel
+          </button>
+          <button type="submit" class="flex-1 py-3 px-4 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition shadow-sm">
+            Save changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- ================= TOAST NOTIFICATION POPUP ================= -->
   <div id="toast-container" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-4">
     <div class="glass-toast rounded-2xl px-4 py-3 flex items-center gap-3 min-w-[240px] max-w-sm">
       <div id="toast-icon-bg" class="w-6 h-6 rounded-full bg-emerald-800 text-white flex items-center justify-center shrink-0">
@@ -633,12 +620,11 @@
 
   <!-- ================= APPLICATION SCRIPT ================= -->
   <script>
-    let isBotRunning = false;
-    let isPasswordVisible = false;
+    let currentUserPlan = 'bronze';
+    let currentAccounts = {};
     let toastTimeout = null;
-    let currentUser = null;
-    let selectedPlan = 'bronze';
     let currentUid = null;
+    let visiblePasswords = {};
 
     function toggleAuthMode(mode) {
       const loginBox = document.getElementById('login-box');
@@ -672,7 +658,7 @@
     }
 
     function selectPlan(planKey) {
-      selectedPlan = planKey;
+      currentUserPlan = planKey;
       const cards = ['pro', 'bronze', 'platinum'];
       const btn = document.getElementById('plan-checkout-btn');
 
@@ -701,21 +687,25 @@
 
     function submitSubscriptionRequest() {
       if (!currentUid) return;
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const amount = prices[currentUserPlan] || 100;
+
       window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
-        plan: selectedPlan,
+        plan: currentUserPlan,
         status: 'pending'
       });
-      showToast(`Subscription set to ${selectedPlan.toUpperCase()}. Pending payment confirmation.`);
-      switchTab('account');
-    }
 
-    function toggleBotExecution() {
-      if (!currentUid) return;
-      isBotRunning = !isBotRunning;
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
-        botRunning: isBotRunning
+      const paymentRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid + '/payments');
+      const newPaymentRef = window.rtdbMethods.push(paymentRef);
+      window.rtdbMethods.set(newPaymentRef, {
+        plan: currentUserPlan,
+        amount: amount,
+        date: new Date().toISOString(),
+        status: 'pending'
       });
-      showToast(isBotRunning ? "Bot started" : "Bot stopped");
+
+      showToast(`Subscription set to ${currentUserPlan.toUpperCase()}. Pending payment confirmation.`);
+      switchTab('account');
     }
 
     function showToast(message, isSuccess = true) {
@@ -744,30 +734,112 @@
       }, 3000);
     }
 
-    function togglePasswordVisibility() {
-      const pwdElem = document.getElementById('pwd-display');
-      isPasswordVisible = !isPasswordVisible;
-      pwdElem.innerText = isPasswordVisible ? "ExnessPass123" : "••••••••";
+    function openAddAccountModal() {
+      const accountIds = Object.keys(currentAccounts);
+      let limit = 1;
+      if (currentUserPlan === 'bronze') limit = 3;
+      if (currentUserPlan === 'platinum') limit = 999999;
+
+      if (accountIds.length >= limit) {
+        showToast(`Account limit reached for ${currentUserPlan.toUpperCase()} plan (${limit} max). Upgrade plan to add more.`, false);
+        return;
+      }
+
+      document.getElementById('broker-modal-title').innerText = "Add broker account";
+      document.getElementById('modal-account-id').value = "";
+      document.getElementById('modal-acc-name').value = "";
+      document.getElementById('modal-broker').value = "";
+      document.getElementById('modal-platform').value = "MT5";
+      document.getElementById('modal-server').value = "";
+      document.getElementById('modal-login').value = "";
+      document.getElementById('modal-password').value = "";
+      document.getElementById('modal-notes').value = "";
+      document.getElementById('broker-modal').classList.remove('hidden');
+    }
+
+    function openEditAccountModal(accId) {
+      const acc = currentAccounts[accId];
+      if (!acc) return;
+
+      document.getElementById('broker-modal-title').innerText = "Edit broker account";
+      document.getElementById('modal-account-id').value = accId;
+      document.getElementById('modal-acc-name').value = acc.name || "";
+      document.getElementById('modal-broker').value = acc.broker || "";
+      document.getElementById('modal-platform').value = acc.platform || "MT5";
+      document.getElementById('modal-server').value = acc.server || "";
+      document.getElementById('modal-login').value = acc.login || "";
+      document.getElementById('modal-password').value = acc.password || "";
+      document.getElementById('modal-notes').value = acc.notes || "";
+      document.getElementById('broker-modal').classList.remove('hidden');
+    }
+
+    function closeBrokerModal() {
+      document.getElementById('broker-modal').classList.add('hidden');
+    }
+
+    function handleSaveBrokerModal(e) {
+      e.preventDefault();
+      if (!currentUid) return;
+
+      const accId = document.getElementById('modal-account-id').value;
+      const accData = {
+        name: document.getElementById('modal-acc-name').value,
+        broker: document.getElementById('modal-broker').value,
+        platform: document.getElementById('modal-platform').value,
+        server: document.getElementById('modal-server').value,
+        login: document.getElementById('modal-login').value,
+        password: document.getElementById('modal-password').value,
+        notes: document.getElementById('modal-notes').value,
+        botRunning: false
+      };
+
+      if (accId) {
+        if (currentAccounts[accId] && currentAccounts[accId].botRunning !== undefined) {
+          accData.botRunning = currentAccounts[accId].botRunning;
+        }
+        window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts/${accId}`), accData);
+        showToast("Broker account updated successfully");
+      } else {
+        const newRef = window.rtdbMethods.push(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts`));
+        window.rtdbMethods.set(newRef, accData);
+        showToast("New broker account added successfully");
+      }
+
+      closeBrokerModal();
+    }
+
+    function deleteAccount(accId) {
+      if (confirm("Do you confirm to delete this account?")) {
+        window.rtdbMethods.remove(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts/${accId}`))
+          .then(() => showToast("Account deleted successfully"))
+          .catch(err => showToast(err.message, false));
+      }
+    }
+
+    function toggleAccountBot(accId, currentState) {
+      if (!currentUid) return;
+      const newState = !currentState;
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts/${accId}`), {
+        botRunning: newState
+      });
+      showToast(newState ? "Bot started for account" : "Bot stopped for account");
+    }
+
+    function toggleAccountPassword(accId) {
+      visiblePasswords[accId] = !visiblePasswords[accId];
+      renderAccountsList(currentAccounts);
     }
 
     function handleSaveAccountDetails(e) {
       e.preventDefault();
-      showToast("Account details updated");
-    }
-
-    function handleSaveBrokerAccount(e) {
-      e.preventDefault();
       if (!currentUid) return;
-      const server = document.getElementById('broker-server').value;
-      const login = document.getElementById('broker-login').value;
-      const pass = document.getElementById('broker-password').value;
-
       window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
-        brokerServer: server,
-        brokerLogin: login,
-        brokerPassword: pass
+        name: document.getElementById('acc-name').value,
+        contactName: document.getElementById('contact-name').value,
+        phone: document.getElementById('acc-phone').value,
+        notes: document.getElementById('acc-notes').value
       });
-      showToast("Broker login details saved");
+      showToast("Account details updated");
     }
 
     window.listenToUserData = function(user) {
@@ -779,12 +851,19 @@
       window.rtdbMethods.onValue(userRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
+          currentUserPlan = (data.plan || 'bronze').toLowerCase();
           document.getElementById('display-user-name').innerText = data.name || user.email;
-          document.getElementById('display-user-plan').innerText = (data.plan || 'BRONZE').toUpperCase();
-          document.getElementById('card-plan-name').innerText = data.plan ? data.plan.toUpperCase() : 'Bronze';
+          document.getElementById('display-user-plan').innerText = currentUserPlan.toUpperCase();
+          document.getElementById('card-plan-name').innerText = currentUserPlan.toUpperCase();
           
+          document.getElementById('acc-name').value = data.name || "";
+          document.getElementById('contact-name').value = data.contactName || data.name || "";
+          document.getElementById('acc-phone').value = data.phone || "";
+          document.getElementById('acc-email').value = user.email || "";
+          document.getElementById('acc-notes').value = data.notes || "";
+
           const prices = { pro: '$50 per month', bronze: '$100 per month', platinum: '$250 per month' };
-          document.getElementById('card-plan-price').innerText = prices[data.plan] || '$100 per month';
+          document.getElementById('card-plan-price').innerText = prices[currentUserPlan] || '$100 per month';
 
           const statusElem = document.getElementById('display-user-status');
           const alertBox = document.getElementById('payment-pending-alert');
@@ -799,51 +878,121 @@
             alertBox.classList.remove('hidden');
           }
 
-          if (data.brokerServer) {
-            document.getElementById('display-broker-server-val').innerText = data.brokerServer;
-            document.getElementById('display-broker-login-id').innerText = data.brokerLogin || '--';
-          }
-
-          isBotRunning = !!data.botRunning;
-          updateBotUI(isBotRunning);
+          currentAccounts = data.accounts || {};
+          renderAccountsList(currentAccounts);
+          renderPaymentHistory(data.payments || {});
         } else {
           window.rtdbMethods.set(userRef, {
             email: user.email,
             name: user.displayName || user.email.split('@')[0],
             plan: 'bronze',
             status: 'pending',
-            botRunning: false,
             createdAt: new Date().toISOString()
           });
         }
       });
     };
 
-    function updateBotUI(running) {
-      const badge = document.getElementById('bot-status-badge');
-      const dot = document.getElementById('bot-status-dot');
-      const text = document.getElementById('bot-status-text');
-      const btn = document.getElementById('bot-toggle-btn');
-      const btnText = document.getElementById('bot-btn-text');
-      const btnIcon = document.getElementById('bot-btn-icon');
+    function renderAccountsList(accounts) {
+      const container = document.getElementById('broker-accounts-container');
+      container.innerHTML = '';
+      const keys = Object.keys(accounts);
 
-      if (running) {
-        badge.className = "px-3 py-1 rounded-full text-xs font-medium bg-activeBg text-activeText flex items-center gap-1.5";
-        dot.className = "w-2 h-2 rounded-full bg-emerald-600 animate-pulse";
-        text.innerText = "Bot running";
-
-        btn.className = "px-5 py-2.5 rounded-full bg-[#3B1919] hover:bg-[#4E2222] text-white text-xs font-medium transition flex items-center gap-2 shadow-sm";
-        btnText.innerText = "Stop bot";
-        btnIcon.innerHTML = `<rect x="6" y="6" width="12" height="12" rx="1"/>`;
-      } else {
-        badge.className = "px-3 py-1 rounded-full text-xs font-medium bg-[#E8DDD1] text-forest flex items-center gap-1.5";
-        dot.className = "w-2 h-2 rounded-full bg-stone-400";
-        text.innerText = "Bot stopped";
-
-        btn.className = "px-5 py-2.5 rounded-full bg-forest hover:bg-forestHover text-white text-xs font-medium transition flex items-center gap-2 shadow-sm";
-        btnText.innerText = "Start bot";
-        btnIcon.innerHTML = `<path d="M8 5v14l11-7z"/>`;
+      if (keys.length === 0) {
+        container.innerHTML = `<div class="glass-card p-5 text-xs text-mutedText">No broker accounts added yet. Click "Add account" above.</div>`;
+        return;
       }
+
+      keys.forEach(accId => {
+        const acc = accounts[accId];
+        const isRunning = !!acc.botRunning;
+        const showPwd = !!visiblePasswords[accId];
+
+        const card = document.createElement('div');
+        card.className = "glass-card p-6 space-y-4";
+        card.innerHTML = `
+          <div class="flex items-center justify-between flex-wrap gap-2">
+            <div class="flex items-center gap-2">
+              <span class="font-serif text-2xl text-forest font-medium">${acc.name || 'Account'}</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-[#EAE2D8] text-forest">${acc.platform || 'MT5'}</span>
+            </div>
+            
+            <div class="px-3 py-1 rounded-full text-xs font-medium ${isRunning ? 'bg-activeBg text-activeText' : 'bg-[#E8DDD1] text-forest'} flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full ${isRunning ? 'bg-emerald-600 animate-pulse' : 'bg-stone-400'}"></span>
+              <span>${isRunning ? 'Bot running' : 'Bot stopped'}</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-mutedText">
+            ${acc.broker || 'Broker'} · ${acc.server || 'Server'}
+          </div>
+
+          <div class="flex items-center gap-4 py-1">
+            <button onclick="openEditAccountModal('${accId}')" class="text-forest/70 hover:text-forest" title="Edit account">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 210.3H3v-3.572L16.732 3.732z"/></svg>
+            </button>
+            <button onclick="deleteAccount('${accId}')" class="text-red-700/70 hover:text-red-700" title="Delete account">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+            </button>
+          </div>
+
+          <div class="space-y-3 pt-2 text-xs">
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">SERVER</div>
+              <div class="text-forest font-medium mt-0.5">${acc.server || '--'}</div>
+            </div>
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">LOGIN</div>
+              <div class="text-forest font-medium mt-0.5">${acc.login || '--'}</div>
+            </div>
+            <div>
+              <div class="text-[10px] font-bold uppercase tracking-widest text-mutedText">PASSWORD</div>
+              <div class="flex items-center gap-2 mt-0.5">
+                <span class="text-forest font-medium tracking-widest">${showPwd ? (acc.password || '') : '••••••••'}</span>
+                <button onclick="toggleAccountPassword('${accId}')" class="text-mutedText hover:text-forest">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3">
+            <button onclick="toggleAccountBot('${accId}', ${isRunning})" class="px-5 py-2.5 rounded-full ${isRunning ? 'bg-[#3B1919] hover:bg-[#4E2222]' : 'bg-forest hover:bg-forestHover'} text-white text-xs font-medium transition flex items-center gap-2 shadow-sm">
+              <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">${isRunning ? '<rect x="6" y="6" width="12" height="12" rx="1"/>' : '<path d="M8 5v14l11-7z"/>'}</svg>
+              <span>${isRunning ? 'Stop bot' : 'Start bot'}</span>
+            </button>
+            <div class="text-[11px] text-mutedText mt-2.5">
+              The XAUUSD bot is ${isRunning ? 'running' : 'idle'} on this account.
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderPaymentHistory(payments) {
+      const container = document.getElementById('payment-history-container');
+      const keys = Object.keys(payments);
+
+      if (keys.length === 0) {
+        container.innerHTML = `No payments recorded yet.`;
+        return;
+      }
+
+      container.innerHTML = '';
+      keys.forEach(k => {
+        const p = payments[k];
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between border-b border-cardBorder pb-2 mb-2 last:border-0 last:pb-0 last:mb-0";
+        row.innerHTML = `
+          <div>
+            <div class="font-semibold text-forest uppercase">${p.plan || 'Plan'} — $${p.amount || 0}</div>
+            <div class="text-[10px] text-mutedText">${new Date(p.date).toLocaleString()}</div>
+          </div>
+          <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold ${p.status === 'active' ? 'bg-activeBg text-activeText' : 'bg-amber-100 text-amber-800'}">${p.status || 'pending'}</span>
+        `;
+        container.appendChild(row);
+      });
     }
 
     function handleEmailLogin(e) {
@@ -865,8 +1014,7 @@
             name: name,
             email: email,
             plan: 'bronze',
-            status: 'pending',
-            botRunning: false
+            status: 'pending'
           });
         })
         .catch(err => showToast(err.message, false));
