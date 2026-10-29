@@ -130,7 +130,7 @@
     td { padding: 14px 18px; border-bottom: 1px solid #EFEBDE; font-size: 13px; vertical-align: middle; }
 
     .user-name { font-weight: 600; color: var(--text-dark); font-size: 14px; margin-bottom: 2px; }
-    .user-email { font-size: 12px; color: #7A7263; }
+    .user-email { font-size: 12px; color: #7A7263; text-decoration: underline; cursor: pointer; }
 
     .pill {
       display: inline-flex; align-items: center; justify-content: center;
@@ -173,6 +173,11 @@
       background-color: #8C4339; color: #FFFFFF; border: none;
       border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
       cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .details-panel {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 22px 24px; margin-bottom: 36px;
     }
 
     .overlay-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; }
@@ -241,7 +246,7 @@
       </div>
     </div>
 
-    <!-- Payment History Table (Real-time Synchronized across User & Master) -->
+    <!-- Payment History Table -->
     <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Payment History & Confirmations</h2>
     <div class="table-card">
       <div class="table-scroll-container">
@@ -263,7 +268,15 @@
       </div>
     </div>
 
-    <!-- Client Bot Accounts Table (With Viewable Sent Passwords) -->
+    <!-- Selected Client Profile Details View (Appears on Email Click) -->
+    <div id="selected-client-details" class="details-panel" style="display:none;">
+      <h2 style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Selected Client Details</h2>
+      <div id="client-info-content" style="font-size:13px; line-height:1.8; color:#0D331D;">
+        <!-- Filled when client email is clicked -->
+      </div>
+    </div>
+
+    <!-- Client Bot Accounts Table -->
     <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Client Bot Operations & Credentials</h2>
     <div class="table-card">
       <div class="table-scroll-container">
@@ -301,6 +314,7 @@
 
   <script>
     let activeUid = null;
+    let selectedClientUid = null;
     let localUsers = {};
     let masterVisiblePasswords = {};
 
@@ -336,12 +350,12 @@
           pendingCount++;
         }
 
-        // Render main account subscription row
+        // Main account subscription row
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
             <div class="user-name">${u.name || 'Unnamed User'}</div>
-            <div class="user-email">${u.email || uid}</div>
+            <div class="user-email" onclick="inspectClient('${uid}')">${u.email || uid}</div>
           </td>
           <td><span class="pill pill-${plan}">${plan.toUpperCase()}</span></td>
           <td><span class="pill ${isActive ? 'pill-status-active' : 'pill-status-pending'}">${u.status || 'pending'}</span></td>
@@ -350,7 +364,7 @@
         `;
         accountsTbody.appendChild(tr);
 
-        // Render payment history rows
+        // Payment history rows
         const payments = u.payments || {};
         const paymentKeys = Object.keys(payments);
         if (paymentKeys.length > 0) {
@@ -360,11 +374,11 @@
             payTr.innerHTML = `
               <td>
                 <div class="user-name">${u.name || 'User'}</div>
-                <div class="user-email">${u.email || ''}</div>
+                <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
               </td>
               <td><span class="pill pill-${(p.plan || 'bronze').toLowerCase()}">${(p.plan || 'bronze').toUpperCase()}</span></td>
               <td style="font-weight:600;">$${p.amount || 0}</td>
-              <div class="user-email">${new Date(p.date).toLocaleString()}</div>
+              <td>${new Date(p.date).toLocaleString()}</td>
               <td><span class="pill ${p.status === 'active' ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
               <td>
                 <button class="btn-start" style="padding:4px 10px; font-size:11px;" onclick="approvePayment('${uid}', '${pId}')">
@@ -376,7 +390,7 @@
           });
         }
 
-        // Render broker bot accounts (supporting multiple per client)
+        // Broker bot accounts
         const accounts = u.accounts || {};
         const accKeys = Object.keys(accounts);
 
@@ -385,7 +399,7 @@
           botTr.innerHTML = `
             <td>
               <div class="user-name">${u.name || 'User'}</div>
-              <div class="user-email">${u.email || ''}</div>
+              <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
             </td>
             <td colspan="5" style="color: #908474; font-style: italic;">No broker accounts configured yet</td>
           `;
@@ -401,7 +415,7 @@
             botTr.innerHTML = `
               <td>
                 <div class="user-name">${u.name || 'User'}</div>
-                <div class="user-email">${acc.name || 'Account'}</div>
+                <div class="user-email" onclick="inspectClient('${uid}')">${acc.name || 'Account'}</div>
               </td>
               <td>
                 <div class="user-name">${acc.broker || 'Not set'}</div>
@@ -444,7 +458,56 @@
       document.getElementById('stat-active-accounts').textContent = activeCount;
       document.getElementById('stat-pending-accounts').textContent = pendingCount;
       document.getElementById('stat-monthly-revenue').textContent = '$' + monthlyTotal;
+
+      if (selectedClientUid && localUsers[selectedClientUid]) {
+        inspectClient(selectedClientUid);
+      }
     };
+
+    function inspectClient(uid) {
+      selectedClientUid = uid;
+      const u = localUsers[uid];
+      if (!u) return;
+
+      const detailsPanel = document.getElementById('selected-client-details');
+      const content = document.getElementById('client-info-content');
+
+      detailsPanel.style.display = 'block';
+
+      let paymentsListHTML = 'No payment records';
+      if (u.payments) {
+        paymentsListHTML = Object.values(u.payments).map(p => `
+          <div style="background:#FAF5EE; border:1px solid #EADBCE; border-radius:12px; padding:10px; margin-top:6px;">
+            <div><strong>Plan:</strong> ${p.plan ? p.plan.toUpperCase() : 'BRONZE'} ($${p.amount || 0})</div>
+            <div><strong>Date:</strong> ${new Date(p.date).toLocaleString()}</div>
+            <div><strong>Status:</strong> ${p.status || 'pending'}</div>
+            <div><strong>Method:</strong> ${p.method || 'phone'}</div>
+            <div><strong>Sender / Phone / Email:</strong> ${p.senderIdentifier || u.phone || 'N/A'}</div>
+            <div><strong>Contact Name:</strong> ${p.contactName || u.contactName || 'N/A'}</div>
+            <div><strong>TID / Ref:</strong> ${p.tid || 'N/A'}</div>
+          </div>
+        `).join('');
+      }
+
+      content.innerHTML = `
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div><strong>Account Name:</strong> ${u.name || 'N/A'}</div>
+          <div><strong>Contact Name:</strong> ${u.contactName || u.name || 'N/A'}</div>
+          <div><strong>Email:</strong> ${u.email || 'N/A'}</div>
+          <div><strong>Phone / Identifier:</strong> ${u.phone || 'N/A'}</div>
+          <div><strong>Current Plan:</strong> ${(u.plan || 'bronze').toUpperCase()}</div>
+          <div><strong>Status:</strong> ${u.status || 'pending'}</div>
+          <div><strong>Started Date:</strong> ${u.startedDate ? new Date(u.startedDate).toLocaleString() : 'Pending'}</div>
+          <div><strong>30-Day Next Renewal:</strong> ${u.renewalDate ? new Date(u.renewalDate).toLocaleString() : 'Pending'}</div>
+        </div>
+        <div style="margin-top:12px;">
+          <strong>Submitted Payment Reference & History:</strong>
+          ${paymentsListHTML}
+        </div>
+      `;
+
+      detailsPanel.scrollIntoView({ behavior: 'smooth' });
+    }
 
     function toggleMasterPassword(pwdKey) {
       masterVisiblePasswords[pwdKey] = !masterVisiblePasswords[pwdKey];
@@ -471,7 +534,15 @@
     function executeAction(action) {
       if (!activeUid) return;
       const updates = {};
-      if (action === 'approve') updates.status = 'active';
+      const now = new Date();
+      const renewal = new Date();
+      renewal.setDate(now.getDate() + 30);
+
+      if (action === 'approve') {
+        updates.status = 'active';
+        updates.startedDate = now.toISOString();
+        updates.renewalDate = renewal.toISOString();
+      }
       if (action === 'pending') updates.status = 'pending';
       if (action === 'pro') updates.plan = 'pro';
       if (action === 'bronze') updates.plan = 'bronze';
@@ -482,8 +553,19 @@
     }
 
     function approvePayment(uid, pId) {
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { status: 'active' });
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { status: 'active' });
+      const now = new Date();
+      const renewal = new Date();
+      renewal.setDate(now.getDate() + 30);
+
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { 
+        status: 'active' 
+      });
+      
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { 
+        status: 'active',
+        startedDate: now.toISOString(),
+        renewalDate: renewal.toISOString()
+      });
     }
 
     function toggleBot(uid, accId, newState) {
