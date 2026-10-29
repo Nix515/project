@@ -653,6 +653,7 @@
     let toastTimeout = null;
     let currentUid = null;
     let visiblePasswords = {};
+    let masterAccountActive = true;
 
     function toggleAuthMode(mode) {
       const loginBox = document.getElementById('login-box');
@@ -875,7 +876,7 @@
     }
 
     function toggleAccountBot(accId, currentState) {
-      if (!currentUid) return;
+      if (!currentUid || !masterAccountActive) return;
       const newState = !currentState;
       window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts/${accId}`), {
         botRunning: newState
@@ -910,6 +911,8 @@
         const data = snapshot.val();
         if (data) {
           currentUserPlan = (data.plan || 'bronze').toLowerCase();
+          masterAccountActive = (data.status === 'active');
+
           document.getElementById('display-user-name').innerText = data.name || user.email;
           document.getElementById('display-user-plan').innerText = currentUserPlan.toUpperCase();
           document.getElementById('card-plan-name').innerText = currentUserPlan.toUpperCase();
@@ -926,14 +929,25 @@
           const statusElem = document.getElementById('display-user-status');
           const alertBox = document.getElementById('payment-pending-alert');
 
-          if (data.status === 'active') {
+          if (masterAccountActive) {
             statusElem.className = "px-3 py-1 rounded-full text-xs font-semibold bg-activeBg text-activeText";
             statusElem.innerText = "Active";
             alertBox.classList.add('hidden');
           } else {
             statusElem.className = "px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800";
-            statusElem.innerText = "Payment Pending";
+            statusElem.innerText = "Payment Pending / Deactivated";
             alertBox.classList.remove('hidden');
+            
+            // If master deactivated user account, force all local bot states to false
+            if (data.accounts) {
+              Object.keys(data.accounts).forEach(accId => {
+                if (data.accounts[accId].botRunning) {
+                  window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts/${accId}`), {
+                    botRunning: false
+                  });
+                }
+              });
+            }
           }
 
           if (data.startedDate) {
@@ -950,7 +964,7 @@
 
           currentAccounts = data.accounts || {};
           renderAccountsList(currentAccounts);
-          renderPaymentHistory(data.payments || {});
+          renderPaymentHistory(data.payments || {}, currentUserPlan);
         } else {
           window.rtdbMethods.set(userRef, {
             email: user.email,
@@ -975,7 +989,7 @@
 
       keys.forEach(accId => {
         const acc = accounts[accId];
-        const isRunning = !!acc.botRunning;
+        const isRunning = masterAccountActive && !!acc.botRunning;
         const showPwd = !!visiblePasswords[accId];
 
         const card = document.createElement('div');
@@ -1027,12 +1041,12 @@
           </div>
 
           <div class="pt-3">
-            <button onclick="toggleAccountBot('${accId}', ${isRunning})" class="px-5 py-2.5 rounded-full ${isRunning ? 'bg-[#3B1919] hover:bg-[#4E2222]' : 'bg-forest hover:bg-forestHover'} text-white text-xs font-medium transition flex items-center gap-2 shadow-sm">
+            <button ${!masterAccountActive ? 'disabled title="Account deactivated by Master Dashboard"' : ''} onclick="toggleAccountBot('${accId}', ${isRunning})" class="px-5 py-2.5 rounded-full ${!masterAccountActive ? 'bg-stone-400 cursor-not-allowed opacity-60' : (isRunning ? 'bg-[#3B1919] hover:bg-[#4E2222]' : 'bg-forest hover:bg-forestHover')} text-white text-xs font-medium transition flex items-center gap-2 shadow-sm">
               <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">${isRunning ? '<rect x="6" y="6" width="12" height="12" rx="1"/>' : '<path d="M8 5v14l11-7z"/>'}</svg>
-              <span>${isRunning ? 'Stop bot' : 'Start bot'}</span>
+              <span>${!masterAccountActive ? 'Bot stopped (Inactive)' : (isRunning ? 'Stop bot' : 'Start bot')}</span>
             </button>
             <div class="text-[11px] text-mutedText mt-2.5">
-              The XAUUSD bot is ${isRunning ? 'running' : 'idle'} on this account.
+              ${!masterAccountActive ? 'Your account is deactivated or pending master activation. Bot controls are locked.' : `The XAUUSD bot is ${isRunning ? 'running' : 'idle'} on this account.`}
             </div>
           </div>
         `;
@@ -1040,7 +1054,7 @@
       });
     }
 
-    function renderPaymentHistory(payments) {
+    function renderPaymentHistory(payments, userCurrentPlan) {
       const container = document.getElementById('payment-history-container');
       const keys = Object.keys(payments);
 
@@ -1049,15 +1063,20 @@
         return;
       }
 
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+
       container.innerHTML = '';
       keys.forEach(k => {
         const p = payments[k];
+        const displayPlan = p.plan || userCurrentPlan || 'bronze';
+        const displayAmount = p.amount || prices[displayPlan.toLowerCase()] || 100;
+
         const row = document.createElement('div');
         row.className = "flex items-center justify-between border-b border-cardBorder pb-2 mb-2 last:border-0 last:pb-0 last:mb-0";
         row.innerHTML = `
           <div>
-            <div class="font-semibold text-forest uppercase">${p.plan || 'Plan'} — $${p.amount || 0}</div>
-            <div class="text-[10px] text-mutedText">${new Date(p.date).toLocaleString()}</div>
+            <div class="font-semibold text-forest uppercase">${displayPlan} — $${displayAmount}</div>
+            <div class="text-[10px] text-mutedText">${new Date(p.date || Date.now()).toLocaleString()}</div>
             <div class="text-[10px] text-mutedText font-mono mt-0.5">Ref: ${p.tid || 'Pending'} (${p.method || 'payment'})</div>
           </div>
           <span class="px-2.5 py-1 rounded-full text-[10px] font-semibold ${p.status === 'active' ? 'bg-activeBg text-activeText' : 'bg-amber-100 text-amber-800'}">${p.status || 'pending'}</span>
