@@ -1,0 +1,772 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TITAN - Master Dashboard</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Firebase v11 Realtime Sync & Auth -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+    import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
+    import { 
+      getAuth, 
+      onAuthStateChanged, 
+      signInWithEmailAndPassword, 
+      signInWithPopup, 
+      GoogleAuthProvider, 
+      signOut 
+    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "import.meta.env.VITE_API_KEY",
+      authDomain: "vee-fxx.firebaseapp.com",
+      databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "vee-fxx",
+      storageBucket: "vee-fxx.firebasestorage.app",
+      messagingSenderId: "924394563283",
+      appId: "1:924394563283:web:cfd15221909ad761f39626",
+      measurementId: "G-XSSW65TWEE"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const rtdb = getDatabase(app);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    window.rtdb = rtdb;
+    window.rtdbMethods = { ref, onValue, update };
+
+    // Allowed Master Emails
+    const ALLOWED_MASTER_EMAILS = [
+      "nddnix124@gmail.com",
+      "venombonaparte46@gmail.com"
+    ];
+
+    let rtdbUnsubscribe = null;
+
+    // Authentication Guard
+    onAuthStateChanged(auth, (user) => {
+      const loginOverlay = document.getElementById("login-modal-overlay");
+      const userDisplay = document.getElementById("master-user-email");
+
+      if (user) {
+        const userEmail = (user.email || "").toLowerCase();
+        
+        if (ALLOWED_MASTER_EMAILS.includes(userEmail)) {
+          // Authorized access granted
+          if (loginOverlay) loginOverlay.style.display = "none";
+          if (userDisplay) userDisplay.textContent = user.email;
+
+          // Attach RTDB Listener
+          if (!rtdbUnsubscribe) {
+            rtdbUnsubscribe = onValue(ref(rtdb, 'users'), (snapshot) => {
+              const usersData = snapshot.val();
+              if (usersData && window.renderMasterDashboard) {
+                window.renderMasterDashboard(usersData);
+              }
+            });
+          }
+        } else {
+          // Unauthorized email logged in
+          alert(`Access Restricted!\n\nThe email "${user.email}" is not authorized to access the Master Dashboard.`);
+          signOut(auth);
+        }
+      } else {
+        // Not logged in
+        if (loginOverlay) loginOverlay.style.display = "flex";
+        if (userDisplay) userDisplay.textContent = "";
+        if (rtdbUnsubscribe) {
+          rtdbUnsubscribe();
+          rtdbUnsubscribe = null;
+        }
+      }
+    });
+
+    // Expose Authentication Handler Functions
+    window.masterLoginEmail = async function(email, password) {
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        alert("Login failed: " + err.message);
+      }
+    };
+
+    window.masterLoginGoogle = async function() {
+      try {
+        await signInWithPopup(auth, googleProvider);
+      } catch (err) {
+        alert("Google Sign-In failed: " + err.message);
+      }
+    };
+
+    window.masterSignOut = function() {
+      signOut(auth).then(() => {
+        window.location.reload();
+      });
+    };
+  </script>
+
+  <style>
+    :root {
+      --bg-color: #FBECE1;
+      --card-bg: #FAF5EE;
+      --card-border: #EADBCE;
+      --text-dark: #0D331D;
+      --text-muted: #6B7280;
+      --accent-green: #0D331D;
+      --accent-green-hover: #14492A;
+      
+      --badge-active-bg: #E3EBDD;
+      --badge-active-text: #5A744C;
+      --badge-pending-bg: #F8DDD9;
+      --badge-pending-text: #8C4339;
+      --badge-bronze-bg: #F5E5DC;
+      --badge-bronze-text: #6A483B;
+      --badge-pro-bg: #EAE6D6;
+      --badge-pro-text: #5C583F;
+      --badge-platinum-bg: #0D331D;
+      --badge-platinum-text: #EBF3ED;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+    }
+
+    .container { max-width: 720px; margin: 0 auto; }
+
+    .top-brand-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 24px; }
+    .brand-logo { display: flex; align-items: center; gap: 12px; }
+    .brand-avatar {
+      width: 38px; height: 38px; border-radius: 50%;
+      background-color: #EBDAD0; color: var(--text-dark);
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Newsreader', serif; font-size: 18px; font-weight: 500;
+    }
+    .brand-title {
+      font-family: 'Newsreader', serif; font-size: 22px; font-weight: 500;
+      letter-spacing: 1.5px; color: var(--text-dark);
+    }
+
+    .auth-status-bar {
+      display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600;
+    }
+    .btn-logout {
+      background-color: transparent; border: 1px solid #71695C; color: #0D331D;
+      border-radius: 9999px; padding: 4px 12px; font-size: 11px; cursor: pointer;
+    }
+    .btn-logout:hover { background-color: #EADBCE; }
+
+    .section-header-eyebrow {
+      font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+      color: #908474; font-weight: 600; margin-bottom: 6px;
+    }
+
+    .main-title {
+      font-family: 'Newsreader', serif; font-size: 34px; font-weight: 400;
+      line-height: 1.15; color: var(--text-dark); margin-bottom: 8px;
+    }
+
+    .main-subtitle { font-size: 14px; color: #71695C; margin-bottom: 20px; }
+
+    .plan-breakdown { display: flex; gap: 24px; margin-bottom: 24px; }
+    .plan-stat { display: flex; flex-direction: column; gap: 4px; }
+    .plan-stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
+    .plan-stat-value { font-family: 'Newsreader', serif; font-size: 26px; color: var(--text-dark); }
+
+    .cards-stack { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
+    .metric-card {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 22px 24px; position: relative;
+    }
+
+    .metric-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
+    .metric-value { font-family: 'Newsreader', serif; font-size: 38px; font-weight: 400; color: var(--text-dark); line-height: 1; }
+
+    .table-card {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; overflow: hidden; margin-bottom: 36px; position: relative;
+    }
+
+    .table-scroll-container { overflow-x: auto; max-height: 480px; overflow-y: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
+
+    th {
+      font-size: 13px; font-weight: 600; color: #5C5446; padding: 16px 18px;
+      border-bottom: 1px solid var(--card-border); background-color: var(--card-bg);
+      position: sticky; top: 0; z-index: 2;
+    }
+
+    td { padding: 14px 18px; border-bottom: 1px solid #EFEBDE; font-size: 13px; vertical-align: middle; }
+
+    .user-name { font-weight: 600; color: var(--text-dark); font-size: 14px; margin-bottom: 2px; }
+    .user-email { font-size: 12px; color: #7A7263; text-decoration: underline; cursor: pointer; }
+
+    .pill {
+      display: inline-flex; align-items: center; justify-content: center;
+      padding: 6px 14px; border-radius: 9999px; font-size: 11px; font-weight: 700;
+      letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;
+    }
+
+    .pill-bronze { background-color: var(--badge-bronze-bg); color: var(--badge-bronze-text); }
+    .pill-pro { background-color: var(--badge-pro-bg); color: var(--badge-pro-text); }
+    .pill-platinum { background-color: var(--badge-platinum-bg); color: var(--badge-platinum-text); }
+
+    .pill-status-active { background-color: var(--badge-active-bg); color: var(--badge-active-text); font-weight: 600; text-transform: capitalize; }
+    .pill-status-pending { background-color: var(--badge-pending-bg); color: var(--badge-pending-text); font-weight: 600; text-transform: capitalize; padding: 6px 12px; }
+
+    .action-btn {
+      background: none; border: none; cursor: pointer; padding: 6px 10px;
+      border-radius: 50%; color: var(--text-dark); font-size: 18px; font-weight: bold;
+    }
+
+    .dropdown-menu {
+      display: none; position: absolute; background-color: #FAF6F0;
+      border: 1px solid #E2D7C8; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.12);
+      width: 230px; z-index: 100; overflow: hidden; padding: 8px 0;
+    }
+    .dropdown-menu.active { display: block; }
+
+    .dropdown-item {
+      display: block; width: 100%; text-align: left; padding: 10px 18px;
+      background: none; border: none; font-size: 13px; color: #36322B; cursor: pointer;
+    }
+    .dropdown-item:hover { background-color: #EFE8DC; }
+
+    .btn-start {
+      background-color: var(--accent-green); color: #FFFFFF; border: none;
+      border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .btn-stop {
+      background-color: #8C4339; color: #FFFFFF; border: none;
+      border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+
+    .details-panel {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 20px; padding: 22px 24px; margin-bottom: 36px;
+    }
+
+    .overlay-backdrop { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 90; }
+    .overlay-backdrop.active { display: block; }
+
+    /* Login Modal CSS */
+    .login-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background-color: rgba(13, 51, 29, 0.7); backdrop-filter: blur(8px);
+      display: flex; align-items: center; justify-content: center; z-index: 999;
+    }
+    .login-card {
+      background-color: var(--card-bg); border: 1px solid var(--card-border);
+      border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 400px;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center;
+    }
+    .login-title { font-family: 'Newsreader', serif; font-size: 28px; color: var(--text-dark); margin-bottom: 6px; }
+    .login-sub { font-size: 13px; color: #71695C; margin-bottom: 24px; }
+    .login-btn-google {
+      width: 100%; padding: 12px; border-radius: 9999px; border: 1px solid var(--card-border);
+      background-color: #FFFFFF; color: var(--text-dark); font-weight: 600; font-size: 13px;
+      display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
+      margin-bottom: 16px;
+    }
+    .login-btn-google:hover { background-color: #F8F1E7; }
+    .divider { font-size: 11px; text-transform: uppercase; color: #908474; margin: 16px 0; letter-spacing: 1px; }
+    .login-input {
+      width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--card-border);
+      background-color: #FFFFFF; font-size: 13px; margin-bottom: 12px; outline: none;
+    }
+    .login-input:focus { border-color: var(--accent-green); }
+    .login-btn-submit {
+      width: 100%; padding: 12px; border-radius: 9999px; border: none;
+      background-color: var(--accent-green); color: #FFFFFF; font-weight: 600; font-size: 13px;
+      cursor: pointer; margin-top: 4px;
+    }
+    .login-btn-submit:hover { background-color: var(--accent-green-hover); }
+  </style>
+</head>
+<body>
+
+  <!-- Master Dashboard Login Modal -->
+  <div id="login-modal-overlay" class="login-overlay">
+    <div class="login-card">
+      <h2 class="login-title">Master Access</h2>
+      <p class="login-sub">Sign in with an authorized Master account email.</p>
+
+      <button class="login-btn-google" onclick="window.masterLoginGoogle()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+        </svg>
+        Sign in with Google
+      </button>
+
+      <div class="divider">or use email</div>
+
+      <form onsubmit="event.preventDefault(); window.masterLoginEmail(document.getElementById('master-email-input').value, document.getElementById('master-pass-input').value);">
+        <input id="master-email-input" type="email" class="login-input" placeholder="Authorized Email" required />
+        <input id="master-pass-input" type="password" class="login-input" placeholder="Password" required />
+        <button type="submit" class="login-btn-submit">Sign In</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="container">
+    <header class="top-brand-bar">
+      <div class="brand-logo">
+        <div class="brand-avatar">T</div>
+        <span class="brand-title">TITAN</span>
+      </div>
+      <div class="auth-status-bar">
+        <span id="master-user-email"></span>
+        <button class="btn-logout" onclick="window.masterSignOut()">Logout</button>
+      </div>
+    </header>
+
+    <div class="section-header-eyebrow">MASTER DASHBOARD</div>
+    <h1 class="main-title">Client accounts</h1>
+    <p class="main-subtitle">Live real-time accounts connected from user portal.</p>
+
+    <!-- Plan Counts Breakdown -->
+    <div class="plan-breakdown">
+      <div class="plan-stat"><span class="plan-stat-label">PRO</span><span class="plan-stat-value" id="stat-pro-count">0</span></div>
+      <div class="plan-stat"><span class="plan-stat-label">BRONZE</span><span class="plan-stat-value" id="stat-bronze-count">0</span></div>
+      <div class="plan-stat"><span class="plan-stat-label">PLATINUM</span><span class="plan-stat-value" id="stat-platinum-count">0</span></div>
+    </div>
+
+    <!-- Summary Metrics Cards -->
+    <div class="cards-stack">
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">CLIENT ACCOUNTS</span></div>
+        <div class="metric-value" id="stat-total-accounts">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">ACTIVE</span></div>
+        <div class="metric-value" id="stat-active-accounts">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">PAYMENT PENDING</span></div>
+        <div class="metric-value" id="stat-pending-accounts">0</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-card-header"><span class="metric-label">MONTHLY RECURRING</span></div>
+        <div class="metric-value" id="stat-monthly-revenue">$0</div>
+      </div>
+    </div>
+
+    <!-- Accounts Table -->
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">All client subscriptions</h2>
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Plan</th>
+              <th>Status</th>
+              <th>Monthly</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-tbody">
+            <!-- Dynamically populated from Firebase -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment History Table -->
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Payment History & Confirmations</h2>
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Plan Requested</th>
+              <th>Amount</th>
+              <th>Date / Time</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="payments-tbody">
+            <!-- Dynamically populated payment submissions -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Selected Client Profile Details View -->
+    <div id="selected-client-details" class="details-panel" style="display:none;">
+      <h2 style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Selected Client Details</h2>
+      <div id="client-info-content" style="font-size:13px; line-height:1.8; color:#0D331D;">
+        <!-- Filled when client email is clicked -->
+      </div>
+    </div>
+
+    <!-- Client Bot Accounts Table -->
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Client Bot Operations & Credentials</h2>
+    <div class="table-card">
+      <div class="table-scroll-container">
+        <table>
+          <thead>
+            <tr>
+              <th>Client</th>
+              <th>Broker / Server</th>
+              <th>Login</th>
+              <th>Password (Sent)</th>
+              <th>Bot Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody id="bots-tbody">
+            <!-- Dynamically populated from Firebase with clear passwords -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Reusable Action Menu -->
+  <div class="dropdown-menu" id="actionDropdown">
+    <button class="dropdown-item" onclick="executeAction('approve')">Approve subscription</button>
+    <button class="dropdown-item" onclick="executeAction('pending')">Mark payment pending / Deactivate</button>
+    <div style="height:1px; background:#E2D7C8; margin:6px 0;"></div>
+    <button class="dropdown-item" onclick="executeAction('pro')">Set Pro ($50)</button>
+    <button class="dropdown-item" onclick="executeAction('bronze')">Set Bronze ($100)</button>
+    <button class="dropdown-item" onclick="executeAction('platinum')">Set Platinum ($250)</button>
+  </div>
+
+  <div class="overlay-backdrop" id="backdrop" onclick="closeDropdown()"></div>
+
+  <script>
+    let activeUid = null;
+    let selectedClientUid = null;
+    let localUsers = {};
+    let masterVisiblePasswords = {};
+
+    window.renderMasterDashboard = function(users) {
+      localUsers = users;
+      const accountsTbody = document.getElementById('accounts-tbody');
+      const paymentsTbody = document.getElementById('payments-tbody');
+      const botsTbody = document.getElementById('bots-tbody');
+
+      accountsTbody.innerHTML = '';
+      paymentsTbody.innerHTML = '';
+      botsTbody.innerHTML = '';
+
+      let proCount = 0, bronzeCount = 0, platinumCount = 0;
+      let activeCount = 0, pendingCount = 0, totalAccounts = 0, monthlyTotal = 0;
+
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+
+      Object.keys(users).forEach(uid => {
+        const u = users[uid];
+        totalAccounts++;
+
+        const plan = (u.plan || 'bronze').toLowerCase();
+        if (plan === 'pro') proCount++;
+        if (plan === 'bronze') bronzeCount++;
+        if (plan === 'platinum') platinumCount++;
+
+        const isActive = u.status === 'active';
+        if (isActive) {
+          activeCount++;
+          monthlyTotal += (prices[plan] || 100);
+        } else {
+          pendingCount++;
+        }
+
+        // Main account subscription row
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>
+            <div class="user-name">${u.name || 'Unnamed User'}</div>
+            <div class="user-email" onclick="inspectClient('${uid}')">${u.email || uid}</div>
+          </td>
+          <td><span class="pill pill-${plan}">${plan.toUpperCase()}</span></td>
+          <td><span class="pill ${isActive ? 'pill-status-active' : 'pill-status-pending'}">${u.status || 'pending'}</span></td>
+          <td style="font-weight:600;">$${prices[plan] || 100}</td>
+          <td><button class="action-btn" onclick="toggleDropdown(event, '${uid}')">&#8226;&#8226;&#8226;</button></td>
+        `;
+        accountsTbody.appendChild(tr);
+
+        // Payment history rows
+        const payments = u.payments || {};
+        const paymentKeys = Object.keys(payments);
+        if (paymentKeys.length > 0) {
+          paymentKeys.forEach(pId => {
+            const p = payments[pId];
+            const payTr = document.createElement('tr');
+            payTr.innerHTML = `
+              <td>
+                <div class="user-name">${u.name || 'User'}</div>
+                <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
+              </td>
+              <td><span class="pill pill-${(p.plan || plan).toLowerCase()}">${(p.plan || plan).toUpperCase()}</span></td>
+              <td style="font-weight:600;">$${p.amount || prices[plan] || 0}</td>
+              <td>${new Date(p.date || Date.now()).toLocaleString()}</td>
+              <td><span class="pill ${p.status === 'active' ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
+              <td>
+                <button class="btn-start" style="padding:4px 10px; font-size:11px;" onclick="approvePayment('${uid}', '${pId}')">
+                  Confirm Payment
+                </button>
+              </td>
+            `;
+            paymentsTbody.appendChild(payTr);
+          });
+        }
+
+        // Broker bot accounts
+        const accounts = u.accounts || {};
+        const accKeys = Object.keys(accounts);
+
+        if (accKeys.length === 0) {
+          const botTr = document.createElement('tr');
+          botTr.innerHTML = `
+            <td>
+              <div class="user-name">${u.name || 'User'}</div>
+              <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
+            </td>
+            <td colspan="5" style="color: #908474; font-style: italic;">No broker accounts configured yet</td>
+          `;
+          botsTbody.appendChild(botTr);
+        } else {
+          accKeys.forEach(accId => {
+            const acc = accounts[accId];
+            const isRunning = isActive && !!acc.botRunning;
+            const pwdKey = `${uid}_${accId}`;
+            const showPwd = !!masterVisiblePasswords[pwdKey];
+
+            const botTr = document.createElement('tr');
+            botTr.innerHTML = `
+              <td>
+                <div class="user-name">${u.name || 'User'}</div>
+                <div class="user-email" onclick="inspectClient('${uid}')">${acc.name || 'Account'}</div>
+              </td>
+              <td>
+                <div class="user-name">${acc.broker || 'Not set'}</div>
+                <div class="user-email">${acc.server || ''} (${acc.platform || 'MT5'})</div>
+              </td>
+              <td>${acc.login || '--'}</td>
+              <td>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <span style="font-family: monospace; font-weight: 600;">${showPwd ? (acc.password || '') : '••••••••'}</span>
+                  <button onclick="toggleMasterPassword('${pwdKey}')" style="background:none; border:none; cursor:pointer; color:#6B7280; font-size:12px; text-decoration:underline;">
+                    ${showPwd ? 'Hide' : 'View'}
+                  </button>
+                </div>
+              </td>
+              <td>
+                <span class="pill ${isRunning ? 'pill-status-active' : 'pill-status-pending'}">
+                  ${!isActive ? 'Deactivated by Master' : (isRunning ? 'Running' : 'Stopped')}
+                </span>
+              </td>
+              <td>
+                <button ${!isActive ? 'disabled style="background-color:#9CA3AF; cursor:not-allowed;"' : ''} class="${isRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', '${accId}', ${!isRunning})">
+                  ${!isActive ? 'Locked' : (isRunning ? 'Stop' : 'Start')}
+                </button>
+              </td>
+            `;
+            botsTbody.appendChild(botTr);
+          });
+        }
+      });
+
+      if (paymentsTbody.children.length === 0) {
+        paymentsTbody.innerHTML = `<tr><td colspan="6" style="color: #908474; font-style: italic;">No payment submissions recorded yet.</td></tr>`;
+      }
+
+      document.getElementById('stat-pro-count').textContent = proCount;
+      document.getElementById('stat-bronze-count').textContent = bronzeCount;
+      document.getElementById('stat-platinum-count').textContent = platinumCount;
+
+      document.getElementById('stat-total-accounts').textContent = totalAccounts;
+      document.getElementById('stat-active-accounts').textContent = activeCount;
+      document.getElementById('stat-pending-accounts').textContent = pendingCount;
+      document.getElementById('stat-monthly-revenue').textContent = '$' + monthlyTotal;
+
+      if (selectedClientUid && localUsers[selectedClientUid]) {
+        inspectClient(selectedClientUid);
+      }
+    };
+
+    function inspectClient(uid) {
+      selectedClientUid = uid;
+      const u = localUsers[uid];
+      if (!u) return;
+
+      const detailsPanel = document.getElementById('selected-client-details');
+      const content = document.getElementById('client-info-content');
+
+      detailsPanel.style.display = 'block';
+
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const currentPlanKey = (u.plan || 'bronze').toLowerCase();
+
+      let paymentsListHTML = 'No payment records';
+      if (u.payments) {
+        paymentsListHTML = Object.values(u.payments).map(p => `
+          <div style="background:#FAF5EE; border:1px solid #EADBCE; border-radius:12px; padding:10px; margin-top:6px;">
+            <div><strong>Plan:</strong> ${(p.plan || currentPlanKey).toUpperCase()} ($${p.amount || prices[currentPlanKey] || 0})</div>
+            <div><strong>Date:</strong> ${new Date(p.date || Date.now()).toLocaleString()}</div>
+            <div><strong>Status:</strong> ${p.status || 'pending'}</div>
+            <div><strong>Method:</strong> ${p.method || 'phone'}</div>
+            <div><strong>Sender / Phone / Email:</strong> ${p.senderIdentifier || u.phone || 'N/A'}</div>
+            <div><strong>Contact Name:</strong> ${p.contactName || u.contactName || 'N/A'}</div>
+            <div><strong>TID / Ref:</strong> ${p.tid || 'N/A'}</div>
+          </div>
+        `).join('');
+      }
+
+      content.innerHTML = `
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
+          <div><strong>Account Name:</strong> ${u.name || 'N/A'}</div>
+          <div><strong>Contact Name:</strong> ${u.contactName || u.name || 'N/A'}</div>
+          <div><strong>Email:</strong> ${u.email || 'N/A'}</div>
+          <div><strong>Phone / Identifier:</strong> ${u.phone || 'N/A'}</div>
+          <div><strong>Current Plan:</strong> ${currentPlanKey.toUpperCase()} ($${prices[currentPlanKey] || 100})</div>
+          <div><strong>Status:</strong> ${u.status || 'pending'}</div>
+          <div><strong>Started Date:</strong> ${u.startedDate ? new Date(u.startedDate).toLocaleString() : 'Pending'}</div>
+          <div><strong>30-Day Next Renewal:</strong> ${u.renewalDate ? new Date(u.renewalDate).toLocaleString() : 'Pending'}</div>
+        </div>
+        <div style="margin-top:12px;">
+          <strong>Submitted Payment Reference & History:</strong>
+          ${paymentsListHTML}
+        </div>
+      `;
+
+      detailsPanel.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function toggleMasterPassword(pwdKey) {
+      masterVisiblePasswords[pwdKey] = !masterVisiblePasswords[pwdKey];
+      renderMasterDashboard(localUsers);
+    }
+
+    function toggleDropdown(event, uid) {
+      event.stopPropagation();
+      activeUid = uid;
+      const rect = event.currentTarget.getBoundingClientRect();
+      const dropdown = document.getElementById('actionDropdown');
+      dropdown.style.top = (window.scrollY + rect.bottom + 4) + 'px';
+      dropdown.style.left = Math.min(rect.left - 170, window.innerWidth - 240) + 'px';
+      dropdown.classList.add('active');
+      document.getElementById('backdrop').classList.add('active');
+    }
+
+    function closeDropdown() {
+      document.getElementById('actionDropdown').classList.remove('active');
+      document.getElementById('backdrop').classList.remove('active');
+      activeUid = null;
+    }
+
+    function executeAction(action) {
+      if (!activeUid) return;
+      const updates = {};
+      const now = new Date();
+      const renewal = new Date();
+      renewal.setDate(now.getDate() + 30);
+
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const u = localUsers[activeUid];
+
+      if (action === 'approve') {
+        updates.status = 'active';
+        updates.startedDate = now.toISOString();
+        updates.renewalDate = renewal.toISOString();
+
+        if (u && u.payments) {
+          Object.keys(u.payments).forEach(pId => {
+            const targetPlan = u.plan || 'bronze';
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+              status: 'active',
+              plan: targetPlan,
+              amount: prices[targetPlan] || 100
+            });
+          });
+        }
+      }
+
+      if (action === 'pending') {
+        updates.status = 'pending';
+        if (u && u.accounts) {
+          Object.keys(u.accounts).forEach(accId => {
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/accounts/${accId}`), {
+              botRunning: false
+            });
+          });
+        }
+      }
+
+      if (action === 'pro' || action === 'bronze' || action === 'platinum') {
+        const newPlan = action;
+        const newPrice = prices[newPlan];
+
+        updates.plan = newPlan;
+
+        if (u && u.payments) {
+          Object.keys(u.payments).forEach(pId => {
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+              plan: newPlan,
+              amount: newPrice
+            });
+          });
+        }
+      }
+
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
+      closeDropdown();
+    }
+
+    function approvePayment(uid, pId) {
+      const now = new Date();
+      const renewal = new Date();
+      renewal.setDate(now.getDate() + 30);
+
+      const prices = { pro: 50, bronze: 100, platinum: 250 };
+      const u = localUsers[uid];
+      const targetPlan = (u && u.plan) ? u.plan.toLowerCase() : 'bronze';
+
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { 
+        status: 'active',
+        plan: targetPlan,
+        amount: prices[targetPlan] || 100
+      });
+      
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { 
+        status: 'active',
+        startedDate: now.toISOString(),
+        renewalDate: renewal.toISOString()
+      });
+    }
+
+    function toggleBot(uid, accId, newState) {
+      const u = localUsers[uid];
+      if (!u || u.status !== 'active') return;
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/accounts/${accId}`), {
+        botRunning: newState
+      });
+    }
+  </script>
+</body>
+</html>
+
