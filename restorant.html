@@ -44,7 +44,7 @@
     import { getDatabase, ref, set, get, onValue, update, push, remove } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-database.js";
 
     const firebaseConfig = {
-       apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
       authDomain: "vee-fxx.firebaseapp.com",
       databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "vee-fxx",
@@ -251,6 +251,10 @@
           <div>
             <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Password</label>
             <input type="password" id="register-password" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="••••••••">
+          </div>
+          <div>
+            <label class="block text-[11px] font-semibold text-slate-300 uppercase tracking-wider mb-1.5">Confirm Password</label>
+            <input type="password" id="register-confirm-password" required class="w-full px-3.5 py-2.5 input-field text-xs sm:text-sm" placeholder="••••••••">
           </div>
           <button type="submit" class="w-full py-3 px-4 bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs sm:text-sm rounded-xl transition shadow-lg shadow-sky-900/20">
             Register Account
@@ -731,6 +735,10 @@
       showToast("Copied to clipboard!");
     }
 
+    function handleGeneralAuthError() {
+      showToast("An authentication error occurred. Please try again.", false);
+    }
+
     function submitSubscriptionRequest() {
       if (!currentUid) return;
       const prices = { pro: 50, bronze: 100, platinum: 250 };
@@ -875,7 +883,7 @@
       if (confirm("Do you confirm to delete this account?")) {
         window.rtdbMethods.remove(window.rtdbMethods.ref(window.firebaseDb, `users/${currentUid}/accounts/${accId}`))
           .then(() => showToast("Account deleted successfully"))
-          .catch(err => showToast(err.message, false));
+          .catch(err => handleGeneralAuthError());
       }
     }
 
@@ -942,7 +950,6 @@
             statusElem.innerText = "Payment Pending / Deactivated";
             alertBox.classList.remove('hidden');
             
-            // If master deactivated user account, force all local bot states to false
             if (data.accounts) {
               Object.keys(data.accounts).forEach(accId => {
                 if (data.accounts[accId].botRunning) {
@@ -1094,7 +1101,7 @@
       const email = document.getElementById('login-email').value;
       const pass = document.getElementById('login-password').value;
       window.fbAuthMethods.signInWithEmailAndPassword(window.firebaseAuth, email, pass)
-        .catch(err => showToast(err.message, false));
+        .catch(err => handleGeneralAuthError());
     }
 
     function handleEmailRegister(e) {
@@ -1102,6 +1109,13 @@
       const name = document.getElementById('register-name').value;
       const email = document.getElementById('register-email').value;
       const pass = document.getElementById('register-password').value;
+      const confirmPass = document.getElementById('register-confirm-password').value;
+
+      if (pass !== confirmPass) {
+        showToast("Passwords do not match", false);
+        return;
+      }
+
       window.fbAuthMethods.createUserWithEmailAndPassword(window.firebaseAuth, email, pass)
         .then((cred) => {
           window.rtdbMethods.set(window.rtdbMethods.ref(window.firebaseDb, 'users/' + cred.user.uid), {
@@ -1111,12 +1125,12 @@
             status: 'pending'
           });
         })
-        .catch(err => showToast(err.message, false));
+        .catch(err => handleGeneralAuthError());
     }
 
     function handleGoogleSignIn() {
       window.fbAuthMethods.signInWithPopup(window.firebaseAuth, window.googleProvider)
-        .catch(err => showToast(err.message, false));
+        .catch(err => handleGeneralAuthError());
     }
 
     function handleSignOut() {
