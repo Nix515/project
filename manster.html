@@ -195,6 +195,26 @@
     .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
     .metric-value { font-family: 'Newsreader', serif; font-size: 38px; font-weight: 400; color: var(--text-dark); line-height: 1; }
 
+    /* Search Bar Styles */
+    .search-container {
+      margin-bottom: 16px;
+    }
+    .email-search-input {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+      background-color: var(--card-bg);
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .email-search-input:focus {
+      border-color: var(--accent-green);
+    }
+
     .table-card {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
       border-radius: 20px; overflow: hidden; margin-bottom: 36px; position: relative;
@@ -368,6 +388,17 @@
         <div class="metric-card-header"><span class="metric-label">MONTHLY RECURRING</span></div>
         <div class="metric-value" id="stat-monthly-revenue">$0</div>
       </div>
+    </div>
+
+    <!-- Email Search Bar -->
+    <div class="search-container">
+      <input 
+        type="text" 
+        id="emailSearchInput" 
+        class="email-search-input" 
+        placeholder="Search clients by email..." 
+        oninput="filterByEmail()" 
+      />
     </div>
 
     <!-- Accounts Table -->
@@ -607,7 +638,30 @@
       if (selectedClientUid && localUsers[selectedClientUid]) {
         inspectClient(selectedClientUid);
       }
+
+      // Re-apply active search filter if data updates in real-time
+      filterByEmail();
     };
+
+    function filterByEmail() {
+      const input = document.getElementById('emailSearchInput');
+      if (!input) return;
+      const filter = input.value.toLowerCase();
+      
+      const tbodyIds = ['accounts-tbody', 'payments-tbody', 'bots-tbody'];
+      tbodyIds.forEach(id => {
+        const tbody = document.getElementById(id);
+        if (!tbody) return;
+        const rows = tbody.getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+          const emailEl = rows[i].querySelector('.user-email');
+          if (emailEl) {
+            const emailText = emailEl.textContent || emailEl.innerText;
+            rows[i].style.display = emailText.toLowerCase().includes(filter) ? '' : 'none';
+          }
+        }
+      });
+    }
 
     function inspectClient(uid) {
       selectedClientUid = uid;
@@ -769,4 +823,3 @@
   </script>
 </body>
 </html>
-
