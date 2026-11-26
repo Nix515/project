@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>QUANTENX - Master Dashboard</title>
+  <title>TITAN - Master Dashboard</title>
   
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 
   <!-- Firebase v11 Realtime Sync & Auth -->
   <script type="module">
@@ -22,21 +22,19 @@
       GoogleAuthProvider, 
       signOut 
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-analytics.js";
 
     const firebaseConfig = {
-      apiKey: "AIzaSyBXm1sjw890s1MK1wH8Uy-spfrABNgyzoY",
-      authDomain: "studio-2875298386-93884.firebaseapp.com",
-      databaseURL: "https://studio-2875298386-93884-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "studio-2875298386-93884",
-      storageBucket: "studio-2875298386-93884.firebasestorage.app",
-      messagingSenderId: "653499656483",
-      appId: "1:653499656483:web:935e2e3bf2aa2f5be74496",
-      measurementId: "G-1K74HTTFYC"
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
+      authDomain: "vee-fxx.firebaseapp.com",
+      databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
+      projectId: "vee-fxx",
+      storageBucket: "vee-fxx.firebasestorage.app",
+      messagingSenderId: "924394563283",
+      appId: "1:924394563283:web:cfd15221909ad761f39626",
+      measurementId: "G-XSSW65TWEE"
     };
 
     const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
     const rtdb = getDatabase(app);
     const auth = getAuth(app);
     const googleProvider = new GoogleAuthProvider();
@@ -61,26 +59,22 @@
         const userEmail = (user.email || "").toLowerCase();
         
         if (ALLOWED_MASTER_EMAILS.includes(userEmail)) {
-          // Authorized access granted
           if (loginOverlay) loginOverlay.style.display = "none";
           if (userDisplay) userDisplay.textContent = user.email;
 
-          // Attach RTDB Listener
           if (!rtdbUnsubscribe) {
             rtdbUnsubscribe = onValue(ref(rtdb, 'users'), (snapshot) => {
-              const usersData = snapshot.val();
-              if (usersData && window.renderMasterDashboard) {
+              const usersData = snapshot.val() || {};
+              if (window.renderMasterDashboard) {
                 window.renderMasterDashboard(usersData);
               }
             });
           }
         } else {
-          // Unauthorized email logged in
           alert(`Access Restricted!\n\nThe email "${user.email}" is not authorized to access the Master Dashboard.`);
           signOut(auth);
         }
       } else {
-        // Not logged in
         if (loginOverlay) loginOverlay.style.display = "flex";
         if (userDisplay) userDisplay.textContent = "";
         if (rtdbUnsubscribe) {
@@ -90,7 +84,6 @@
       }
     });
 
-    // Expose Authentication Handler Functions
     window.masterLoginEmail = async function(email, password) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
@@ -116,24 +109,24 @@
 
   <style>
     :root {
-      --bg-color: #0B0F17;
-      --card-bg: #111827;
-      --card-border: rgba(255, 255, 255, 0.08);
-      --text-dark: #F8FAFC;
-      --text-muted: #94A3B8;
-      --accent-blue: #0284C7;
-      --accent-blue-hover: #0369A1;
+      --bg-color: #FBECE1;
+      --card-bg: #FAF5EE;
+      --card-border: #EADBCE;
+      --text-dark: #0D331D;
+      --text-muted: #6B7280;
+      --accent-green: #0D331D;
+      --accent-green-hover: #14492A;
       
-      --badge-active-bg: #0F2942;
-      --badge-active-text: #38BDF8;
-      --badge-pending-bg: #451A1A;
-      --badge-pending-text: #F87171;
-      --badge-bronze-bg: #1E293B;
-      --badge-bronze-text: #CBD5E1;
-      --badge-pro-bg: #334155;
-      --badge-pro-text: #F1F5F9;
-      --badge-platinum-bg: #0284C7;
-      --badge-platinum-text: #FFFFFF;
+      --badge-active-bg: #E3EBDD;
+      --badge-active-text: #5A744C;
+      --badge-pending-bg: #F8DDD9;
+      --badge-pending-text: #8C4339;
+      --badge-bronze-bg: #F5E5DC;
+      --badge-bronze-text: #6A483B;
+      --badge-pro-bg: #EAE6D6;
+      --badge-pro-text: #5C583F;
+      --badge-platinum-bg: #0D331D;
+      --badge-platinum-text: #EBF3ED;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -146,56 +139,75 @@
       padding: 20px 16px 40px;
     }
 
-    .container { max-width: 760px; margin: 0 auto; }
+    .container { max-width: 720px; margin: 0 auto; }
 
-    .top-brand-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 24px; border-bottom: 1px solid var(--card-border); margin-bottom: 24px; }
+    .top-brand-bar { display: flex; align-items: center; justify-content: space-between; padding: 8px 0 24px; }
     .brand-logo { display: flex; align-items: center; gap: 12px; }
     .brand-avatar {
       width: 38px; height: 38px; border-radius: 50%;
-      background-color: #1E293B; border: 1px solid #334155; color: #38BDF8;
+      background-color: #EBDAD0; color: var(--text-dark);
       display: flex; align-items: center; justify-content: center;
-      font-size: 18px; font-weight: 700;
+      font-family: 'Newsreader', serif; font-size: 18px; font-weight: 500;
     }
     .brand-title {
-      font-size: 20px; font-weight: 700;
-      letter-spacing: 1.5px; color: #FFFFFF;
+      font-family: 'Newsreader', serif; font-size: 22px; font-weight: 500;
+      letter-spacing: 1.5px; color: var(--text-dark);
     }
 
     .auth-status-bar {
-      display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600; color: #94A3B8;
+      display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 600;
     }
     .btn-logout {
-      background-color: transparent; border: 1px solid #334155; color: #F8FAFC;
-      border-radius: 9999px; padding: 4px 12px; font-size: 11px; cursor: pointer; transition: all 0.2s;
+      background-color: transparent; border: 1px solid #71695C; color: #0D331D;
+      border-radius: 9999px; padding: 4px 12px; font-size: 11px; cursor: pointer;
     }
-    .btn-logout:hover { background-color: #1E293B; }
+    .btn-logout:hover { background-color: #EADBCE; }
 
     .section-header-eyebrow {
       font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
-      color: #38BDF8; font-weight: 700; margin-bottom: 6px;
+      color: #908474; font-weight: 600; margin-bottom: 6px;
     }
 
     .main-title {
-      font-size: 32px; font-weight: 700;
-      line-height: 1.15; color: #FFFFFF; margin-bottom: 8px;
+      font-family: 'Newsreader', serif; font-size: 34px; font-weight: 400;
+      line-height: 1.15; color: var(--text-dark); margin-bottom: 8px;
     }
 
-    .main-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 20px; }
+    .main-subtitle { font-size: 14px; color: #71695C; margin-bottom: 20px; }
 
     .plan-breakdown { display: flex; gap: 24px; margin-bottom: 24px; }
     .plan-stat { display: flex; flex-direction: column; gap: 4px; }
-    .plan-stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #64748B; font-weight: 600; }
-    .plan-stat-value { font-size: 24px; font-weight: 700; color: #FFFFFF; }
+    .plan-stat-label { font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
+    .plan-stat-value { font-family: 'Newsreader', serif; font-size: 26px; color: var(--text-dark); }
 
-    .cards-stack { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 16px; margin-bottom: 36px; }
+    .cards-stack { display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px; }
     .metric-card {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
-      border-radius: 20px; padding: 20px; position: relative;
+      border-radius: 20px; padding: 22px 24px; position: relative;
     }
 
     .metric-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-    .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #64748B; font-weight: 600; }
-    .metric-value { font-size: 32px; font-weight: 700; color: #FFFFFF; line-height: 1; }
+    .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
+    .metric-value { font-family: 'Newsreader', serif; font-size: 38px; font-weight: 400; color: var(--text-dark); line-height: 1; }
+
+    .search-container {
+      margin-bottom: 16px;
+    }
+    .email-search-input {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+      background-color: var(--card-bg);
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .email-search-input:focus {
+      border-color: var(--accent-green);
+    }
 
     .table-card {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
@@ -206,15 +218,15 @@
     table { width: 100%; border-collapse: collapse; text-align: left; min-width: 600px; }
 
     th {
-      font-size: 12px; font-weight: 600; color: #94A3B8; padding: 16px 18px;
-      border-bottom: 1px solid var(--card-border); background-color: #0F172A;
-      position: sticky; top: 0; z-index: 2; text-transform: uppercase; tracking-wider: 1px;
+      font-size: 13px; font-weight: 600; color: #5C5446; padding: 16px 18px;
+      border-bottom: 1px solid var(--card-border); background-color: var(--card-bg);
+      position: sticky; top: 0; z-index: 2;
     }
 
-    td { padding: 14px 18px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); font-size: 13px; vertical-align: middle; color: #E2E8F0; }
+    td { padding: 14px 18px; border-bottom: 1px solid #EFEBDE; font-size: 13px; vertical-align: middle; }
 
-    .user-name { font-weight: 600; color: #FFFFFF; font-size: 14px; margin-bottom: 2px; }
-    .user-email { font-size: 12px; color: #38BDF8; text-decoration: underline; cursor: pointer; }
+    .user-name { font-weight: 600; color: var(--text-dark); font-size: 14px; margin-bottom: 2px; }
+    .user-email { font-size: 12px; color: #7A7263; text-decoration: underline; cursor: pointer; }
 
     .pill {
       display: inline-flex; align-items: center; justify-content: center;
@@ -222,45 +234,42 @@
       letter-spacing: 0.8px; text-transform: uppercase; white-space: nowrap;
     }
 
-    .pill-bronze { background-color: var(--badge-bronze-bg); color: var(--badge-bronze-text); border: 1px solid #334155; }
+    .pill-bronze { background-color: var(--badge-bronze-bg); color: var(--badge-bronze-text); }
     .pill-pro { background-color: var(--badge-pro-bg); color: var(--badge-pro-text); }
     .pill-platinum { background-color: var(--badge-platinum-bg); color: var(--badge-platinum-text); }
 
-    .pill-status-active { background-color: var(--badge-active-bg); color: var(--badge-active-text); font-weight: 600; text-transform: capitalize; border: 1px solid rgba(56, 189, 248, 0.3); }
-    .pill-status-pending { background-color: var(--badge-pending-bg); color: var(--badge-pending-text); font-weight: 600; text-transform: capitalize; padding: 6px 12px; border: 1px solid rgba(248, 113, 113, 0.3); }
+    .pill-status-active { background-color: var(--badge-active-bg); color: var(--badge-active-text); font-weight: 600; text-transform: capitalize; }
+    .pill-status-pending { background-color: var(--badge-pending-bg); color: var(--badge-pending-text); font-weight: 600; text-transform: capitalize; padding: 6px 12px; }
 
     .action-btn {
       background: none; border: none; cursor: pointer; padding: 6px 10px;
-      border-radius: 50%; color: #94A3B8; font-size: 18px; font-weight: bold; transition: color 0.2s;
+      border-radius: 50%; color: var(--text-dark); font-size: 18px; font-weight: bold;
     }
-    .action-btn:hover { color: #FFFFFF; }
 
     .dropdown-menu {
-      display: none; position: absolute; background-color: #1E293B;
-      border: 1px solid #334155; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+      display: none; position: absolute; background-color: #FAF6F0;
+      border: 1px solid #E2D7C8; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.12);
       width: 230px; z-index: 100; overflow: hidden; padding: 8px 0;
     }
     .dropdown-menu.active { display: block; }
 
     .dropdown-item {
       display: block; width: 100%; text-align: left; padding: 10px 18px;
-      background: none; border: none; font-size: 13px; color: #E2E8F0; cursor: pointer; transition: background 0.2s;
+      background: none; border: none; font-size: 13px; color: #36322B; cursor: pointer;
     }
-    .dropdown-item:hover { background-color: #334155; }
+    .dropdown-item:hover { background-color: #EFE8DC; }
 
     .btn-start {
-      background-color: var(--accent-blue); color: #FFFFFF; border: none;
+      background-color: var(--accent-green); color: #FFFFFF; border: none;
       border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-start:hover { background-color: var(--accent-blue-hover); }
 
     .btn-stop {
-      background-color: #E11D48; color: #FFFFFF; border: none;
+      background-color: #8C4339; color: #FFFFFF; border: none;
       border-radius: 9999px; padding: 6px 14px; font-size: 12px; font-weight: 600;
-      cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: background 0.2s;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
     }
-    .btn-stop:hover { background-color: #BE123C; }
 
     .details-panel {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
@@ -273,35 +282,35 @@
     /* Login Modal CSS */
     .login-overlay {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-      background-color: rgba(11, 15, 23, 0.85); backdrop-filter: blur(8px);
+      background-color: rgba(13, 51, 29, 0.7); backdrop-filter: blur(8px);
       display: flex; align-items: center; justify-content: center; z-index: 999;
     }
     .login-card {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
       border-radius: 24px; padding: 32px 28px; width: 100%; max-width: 400px;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6); text-align: center;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center;
     }
-    .login-title { font-size: 26px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
-    .login-sub { font-size: 13px; color: var(--text-muted); margin-bottom: 24px; }
+    .login-title { font-family: 'Newsreader', serif; font-size: 28px; color: var(--text-dark); margin-bottom: 6px; }
+    .login-sub { font-size: 13px; color: #71695C; margin-bottom: 24px; }
     .login-btn-google {
-      width: 100%; padding: 12px; border-radius: 9999px; border: 1px solid #334155;
-      background-color: #1E293B; color: #F8FAFC; font-weight: 600; font-size: 13px;
+      width: 100%; padding: 12px; border-radius: 9999px; border: 1px solid var(--card-border);
+      background-color: #FFFFFF; color: var(--text-dark); font-weight: 600; font-size: 13px;
       display: flex; align-items: center; justify-content: center; gap: 10px; cursor: pointer;
-      margin-bottom: 16px; transition: background 0.2s;
+      margin-bottom: 16px;
     }
-    .login-btn-google:hover { background-color: #334155; }
-    .divider { font-size: 11px; text-transform: uppercase; color: #64748B; margin: 16px 0; letter-spacing: 1px; }
+    .login-btn-google:hover { background-color: #F8F1E7; }
+    .divider { font-size: 11px; text-transform: uppercase; color: #908474; margin: 16px 0; letter-spacing: 1px; }
     .login-input {
-      width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid #334155;
-      background-color: #0F172A; color: #F8FAFC; font-size: 13px; margin-bottom: 12px; outline: none; transition: border-color 0.2s;
+      width: 100%; padding: 12px 16px; border-radius: 12px; border: 1px solid var(--card-border);
+      background-color: #FFFFFF; font-size: 13px; margin-bottom: 12px; outline: none;
     }
-    .login-input:focus { border-color: var(--accent-blue); }
+    .login-input:focus { border-color: var(--accent-green); }
     .login-btn-submit {
       width: 100%; padding: 12px; border-radius: 9999px; border: none;
-      background-color: var(--accent-blue); color: #FFFFFF; font-weight: 600; font-size: 13px;
-      cursor: pointer; margin-top: 4px; transition: background 0.2s;
+      background-color: var(--accent-green); color: #FFFFFF; font-weight: 600; font-size: 13px;
+      cursor: pointer; margin-top: 4px;
     }
-    .login-btn-submit:hover { background-color: var(--accent-blue-hover); }
+    .login-btn-submit:hover { background-color: var(--accent-green-hover); }
   </style>
 </head>
 <body>
@@ -335,8 +344,8 @@
   <div class="container">
     <header class="top-brand-bar">
       <div class="brand-logo">
-        <div class="brand-avatar">Q</div>
-        <span class="brand-title">QUANTENX</span>
+        <div class="brand-avatar">T</div>
+        <span class="brand-title">TITAN</span>
       </div>
       <div class="auth-status-bar">
         <span id="master-user-email"></span>
@@ -375,8 +384,19 @@
       </div>
     </div>
 
+    <!-- Email Search Bar -->
+    <div class="search-container">
+      <input 
+        type="text" 
+        id="emailSearchInput" 
+        class="email-search-input" 
+        placeholder="Search clients by email..." 
+        oninput="filterByEmail()" 
+      />
+    </div>
+
     <!-- Accounts Table -->
-    <h2 class="section-title" style="font-size:20px; font-weight:700; color:#FFFFFF; margin-bottom:12px;">All client subscriptions</h2>
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">All client subscriptions</h2>
     <div class="table-card">
       <div class="table-scroll-container">
         <table>
@@ -390,14 +410,13 @@
             </tr>
           </thead>
           <tbody id="accounts-tbody">
-            <!-- Dynamically populated from Firebase -->
           </tbody>
         </table>
       </div>
     </div>
 
     <!-- Payment History Table -->
-    <h2 class="section-title" style="font-size:20px; font-weight:700; color:#FFFFFF; margin-bottom:12px;">Payment History & Confirmations</h2>
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Payment History & Confirmations</h2>
     <div class="table-card">
       <div class="table-scroll-container">
         <table>
@@ -412,7 +431,6 @@
             </tr>
           </thead>
           <tbody id="payments-tbody">
-            <!-- Dynamically populated payment submissions -->
           </tbody>
         </table>
       </div>
@@ -420,14 +438,13 @@
 
     <!-- Selected Client Profile Details View -->
     <div id="selected-client-details" class="details-panel" style="display:none;">
-      <h2 style="font-size:20px; font-weight:700; color:#FFFFFF; margin-bottom:12px;">Selected Client Details</h2>
-      <div id="client-info-content" style="font-size:13px; line-height:1.8; color:#E2E8F0;">
-        <!-- Filled when client email is clicked -->
+      <h2 style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Selected Client Details</h2>
+      <div id="client-info-content" style="font-size:13px; line-height:1.8; color:#0D331D;">
       </div>
     </div>
 
     <!-- Client Bot Accounts Table -->
-    <h2 class="section-title" style="font-size:20px; font-weight:700; color:#FFFFFF; margin-bottom:12px;">Client Bot Operations & Credentials</h2>
+    <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Client Bot Operations & Credentials</h2>
     <div class="table-card">
       <div class="table-scroll-container">
         <table>
@@ -442,7 +459,6 @@
             </tr>
           </thead>
           <tbody id="bots-tbody">
-            <!-- Dynamically populated from Firebase with clear passwords -->
           </tbody>
         </table>
       </div>
@@ -454,7 +470,7 @@
   <div class="dropdown-menu" id="actionDropdown">
     <button class="dropdown-item" onclick="executeAction('approve')">Approve subscription</button>
     <button class="dropdown-item" onclick="executeAction('pending')">Mark payment pending / Deactivate</button>
-    <div style="height:1px; background:#334155; margin:6px 0;"></div>
+    <div style="height:1px; background:#E2D7C8; margin:6px 0;"></div>
     <button class="dropdown-item" onclick="executeAction('pro')">Set Pro ($50)</button>
     <button class="dropdown-item" onclick="executeAction('bronze')">Set Bronze ($100)</button>
     <button class="dropdown-item" onclick="executeAction('platinum')">Set Platinum ($250)</button>
@@ -500,7 +516,6 @@
           pendingCount++;
         }
 
-        // Main account subscription row
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
@@ -514,25 +529,27 @@
         `;
         accountsTbody.appendChild(tr);
 
-        // Payment history rows
         const payments = u.payments || {};
         const paymentKeys = Object.keys(payments);
         if (paymentKeys.length > 0) {
           paymentKeys.forEach(pId => {
             const p = payments[pId];
+            const pPlan = (p.plan || plan).toLowerCase();
+            const pAmount = p.amount || prices[pPlan] || 100;
+            const pActive = p.status === 'active';
             const payTr = document.createElement('tr');
             payTr.innerHTML = `
               <td>
                 <div class="user-name">${u.name || 'User'}</div>
                 <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
               </td>
-              <td><span class="pill pill-${(p.plan || plan).toLowerCase()}">${(p.plan || plan).toUpperCase()}</span></td>
-              <td style="font-weight:600;">$${p.amount || prices[plan] || 0}</td>
+              <td><span class="pill pill-${pPlan}">${pPlan.toUpperCase()}</span></td>
+              <td style="font-weight:600;">$${pAmount}</td>
               <td>${new Date(p.date || Date.now()).toLocaleString()}</td>
-              <td><span class="pill ${p.status === 'active' ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
+              <td><span class="pill ${pActive ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
               <td>
                 <button class="btn-start" style="padding:4px 10px; font-size:11px;" onclick="approvePayment('${uid}', '${pId}')">
-                  Confirm Payment
+                  ${pActive ? 'Confirmed' : 'Confirm Payment'}
                 </button>
               </td>
             `;
@@ -540,7 +557,6 @@
           });
         }
 
-        // Broker bot accounts
         const accounts = u.accounts || {};
         const accKeys = Object.keys(accounts);
 
@@ -551,7 +567,7 @@
               <div class="user-name">${u.name || 'User'}</div>
               <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
             </td>
-            <td colspan="5" style="color: #64748B; font-style: italic;">No broker accounts configured yet</td>
+            <td colspan="5" style="color: #908474; font-style: italic;">No broker accounts configured yet</td>
           `;
           botsTbody.appendChild(botTr);
         } else {
@@ -575,7 +591,7 @@
               <td>
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span style="font-family: monospace; font-weight: 600;">${showPwd ? (acc.password || '') : '••••••••'}</span>
-                  <button onclick="toggleMasterPassword('${pwdKey}')" style="background:none; border:none; cursor:pointer; color:#38BDF8; font-size:12px; text-decoration:underline;">
+                  <button onclick="toggleMasterPassword('${pwdKey}')" style="background:none; border:none; cursor:pointer; color:#6B7280; font-size:12px; text-decoration:underline;">
                     ${showPwd ? 'Hide' : 'View'}
                   </button>
                 </div>
@@ -586,7 +602,7 @@
                 </span>
               </td>
               <td>
-                <button ${!isActive ? 'disabled style="background-color:#475569; cursor:not-allowed;"' : ''} class="${isRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', '${accId}', ${!isRunning})">
+                <button ${!isActive ? 'disabled style="background-color:#9CA3AF; cursor:not-allowed;"' : ''} class="${isRunning ? 'btn-stop' : 'btn-start'}" onclick="toggleBot('${uid}', '${accId}', ${!isRunning})">
                   ${!isActive ? 'Locked' : (isRunning ? 'Stop' : 'Start')}
                 </button>
               </td>
@@ -597,7 +613,7 @@
       });
 
       if (paymentsTbody.children.length === 0) {
-        paymentsTbody.innerHTML = `<tr><td colspan="6" style="color: #64748B; font-style: italic;">No payment submissions recorded yet.</td></tr>`;
+        paymentsTbody.innerHTML = `<tr><td colspan="6" style="color: #908474; font-style: italic;">No payment submissions recorded yet.</td></tr>`;
       }
 
       document.getElementById('stat-pro-count').textContent = proCount;
@@ -612,7 +628,29 @@
       if (selectedClientUid && localUsers[selectedClientUid]) {
         inspectClient(selectedClientUid);
       }
+
+      filterByEmail();
     };
+
+    function filterByEmail() {
+      const input = document.getElementById('emailSearchInput');
+      if (!input) return;
+      const filter = input.value.toLowerCase();
+      
+      const tbodyIds = ['accounts-tbody', 'payments-tbody', 'bots-tbody'];
+      tbodyIds.forEach(id => {
+        const tbody = document.getElementById(id);
+        if (!tbody) return;
+        const rows = tbody.getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+          const emailEl = rows[i].querySelector('.user-email');
+          if (emailEl) {
+            const emailText = emailEl.textContent || emailEl.innerText;
+            rows[i].style.display = emailText.toLowerCase().includes(filter) ? '' : 'none';
+          }
+        }
+      });
+    }
 
     function inspectClient(uid) {
       selectedClientUid = uid;
@@ -630,7 +668,7 @@
       let paymentsListHTML = 'No payment records';
       if (u.payments) {
         paymentsListHTML = Object.values(u.payments).map(p => `
-          <div style="background:#0F172A; border:1px solid #334155; border-radius:12px; padding:10px; margin-top:6px;">
+          <div style="background:#FAF5EE; border:1px solid #EADBCE; border-radius:12px; padding:10px; margin-top:6px;">
             <div><strong>Plan:</strong> ${(p.plan || currentPlanKey).toUpperCase()} ($${p.amount || prices[currentPlanKey] || 0})</div>
             <div><strong>Date:</strong> ${new Date(p.date || Date.now()).toLocaleString()}</div>
             <div><strong>Status:</strong> ${p.status || 'pending'}</div>
@@ -701,12 +739,15 @@
 
         if (u && u.payments) {
           Object.keys(u.payments).forEach(pId => {
-            const targetPlan = u.plan || 'bronze';
-            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
-              status: 'active',
-              plan: targetPlan,
-              amount: prices[targetPlan] || 100
-            });
+            const p = u.payments[pId];
+            if (!p.status || p.status === 'pending') {
+              const targetPlan = (p.plan || u.plan || 'bronze').toLowerCase();
+              window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+                status: 'active',
+                plan: targetPlan,
+                amount: p.amount || prices[targetPlan] || 100
+              });
+            }
           });
         }
       }
@@ -730,10 +771,13 @@
 
         if (u && u.payments) {
           Object.keys(u.payments).forEach(pId => {
-            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
-              plan: newPlan,
-              amount: newPrice
-            });
+            const p = u.payments[pId];
+            if (!p.status || p.status === 'pending') {
+              window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+                plan: newPlan,
+                amount: newPrice
+              });
+            }
           });
         }
       }
@@ -749,15 +793,18 @@
 
       const prices = { pro: 50, bronze: 100, platinum: 250 };
       const u = localUsers[uid];
-      const targetPlan = (u && u.plan) ? u.plan.toLowerCase() : 'bronze';
+      const p = (u && u.payments && u.payments[pId]) ? u.payments[pId] : {};
+      const targetPlan = (p.plan || (u && u.plan) || 'bronze').toLowerCase();
+      const targetAmount = p.amount || prices[targetPlan] || 100;
 
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { 
         status: 'active',
         plan: targetPlan,
-        amount: prices[targetPlan] || 100
+        amount: targetAmount
       });
       
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { 
+        plan: targetPlan,
         status: 'active',
         startedDate: now.toISOString(),
         renewalDate: renewal.toISOString()
@@ -767,7 +814,7 @@
     function toggleBot(uid, accId, newState) {
       const u = localUsers[uid];
       if (!u || u.status !== 'active') return;
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/accounts/${accId}`), {
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, `users/${uid}/accounts/${accId}`), {
         botRunning: newState
       });
     }
