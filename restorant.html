@@ -77,6 +77,10 @@
       if (user) {
         window.listenToUserData(user);
       } else {
+        if (window.userUnsubscribe) {
+          window.userUnsubscribe();
+          window.userUnsubscribe = null;
+        }
         document.getElementById('portal-section').classList.add('hidden');
         document.getElementById('auth-section').classList.remove('hidden');
       }
@@ -660,6 +664,7 @@
     let currentUid = null;
     let visiblePasswords = {};
     let masterAccountActive = true;
+    window.userUnsubscribe = null;
 
     function toggleAuthMode(mode) {
       const loginBox = document.getElementById('login-box');
@@ -689,7 +694,6 @@
         accountContent.classList.add('hidden');
         navPlans.className = "px-4 py-1.5 rounded-full text-xs font-medium bg-[#1F4A30] text-white transition";
         navAccount.className = "px-4 py-1.5 rounded-full text-xs font-medium text-emerald-100 hover:bg-[#1F4A30]/60 transition";
-        selectPlan(currentUserPlan);
       }
     }
 
@@ -734,7 +738,7 @@
       showToast("Copied to clipboard!");
     }
 
-    function submitSubscriptionRequest() {
+    async function submitSubscriptionRequest() {
       if (!currentUid) return;
       const prices = { pro: 50, bronze: 100, platinum: 250 };
       const amount = prices[currentUserPlan] || 100;
@@ -749,33 +753,33 @@
         return;
       }
 
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
-        plan: currentUserPlan,
-        status: 'pending',
-        contactName: contact,
-        phone: sender,
-        notes: `TID: ${tid} | Method: ${method}`
-      });
+      try {
+        await window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid), {
+          plan: currentUserPlan,
+          status: 'pending',
+          contactName: contact,
+          phone: sender,
+          notes: `TID: ${tid} | Method: ${method}`
+        });
 
-      const paymentRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid + '/payments');
-      const newPaymentRef = window.rtdbMethods.push(paymentRef);
-      window.rtdbMethods.set(newPaymentRef, {
-        plan: currentUserPlan,
-        amount: amount,
-        date: new Date().toISOString(),
-        status: 'pending',
-        method: method,
-        senderIdentifier: sender,
-        contactName: contact,
-        tid: tid
-      });
+        const paymentRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + currentUid + '/payments');
+        const newPaymentRef = window.rtdbMethods.push(paymentRef);
+        await window.rtdbMethods.set(newPaymentRef, {
+          plan: currentUserPlan,
+          amount: amount,
+          date: new Date().toISOString(),
+          status: 'pending',
+          method: method,
+          senderIdentifier: sender,
+          contactName: contact,
+          tid: tid
+        });
 
-      document.getElementById('pay-sender-identifier').value = "";
-      document.getElementById('pay-contact-name').value = "";
-      document.getElementById('pay-tid-ref').value = "";
-
-      showToast(`Payment reference for ${currentUserPlan.toUpperCase()} submitted! Awaiting master approval.`);
-      switchTab('account');
+        showToast(`Payment reference for ${currentUserPlan.toUpperCase()} submitted! Awaiting master approval.`);
+        switchTab('account');
+      } catch (err) {
+        showToast("Failed to submit payment: " + err.message, false);
+      }
     }
 
     function showToast(message, isSuccess = true) {
@@ -912,21 +916,47 @@
       showToast("Account details updated");
     }
 
-    window.listenToUserData = function(user) {
+    window.listenToUserData = async function(user) {
       currentUid = user.uid;
       document.getElementById('auth-section').classList.add('hidden');
       document.getElementById('portal-section').classList.remove('hidden');
 
       const userRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + user.uid);
-      window.rtdbMethods.onValue(userRef, (snapshot) => {
+
+      try {
+        // Ensure user node is initialized before attaching live listener
+        const initialSnap = await window.rtdbMethods.get(userRef);
+        if (!initialSnap.exists()) {
+          const defaultName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+          await window.rtdbMethods.set(userRef, {
+            email: user.email || "",
+            name: defaultName,
+            contactName: defaultName,
+            phone: "",
+            notes: "",
+            plan: 'bronze',
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        console.error("Database initialization error:", err);
+        document.getElementById('display-user-name').innerText = user.displayName || user.email || "Account";
+        showToast("Database access error: " + err.message, false);
+        return;
+      }
+
+      if (window.userUnsubscribe) {
+        window.userUnsubscribe();
+      }
+
+      window.userUnsubscribe = window.rtdbMethods.onValue(userRef, (snapshot) => {
         const data = snapshot.val();
         if (data) {
           currentUserPlan = (data.plan || 'bronze').toLowerCase();
           masterAccountActive = (data.status === 'active');
 
-          selectPlan(currentUserPlan);
-
-          document.getElementById('display-user-name').innerText = data.name || user.email;
+          document.getElementById('display-user-name').innerText = data.name || user.displayName || user.email;
           document.getElementById('display-user-plan').innerText = currentUserPlan.toUpperCase();
           document.getElementById('card-plan-name').innerText = currentUserPlan.toUpperCase();
           
@@ -977,15 +1007,11 @@
           currentAccounts = data.accounts || {};
           renderAccountsList(currentAccounts);
           renderPaymentHistory(data.payments || {}, currentUserPlan);
-        } else {
-          window.rtdbMethods.set(userRef, {
-            email: user.email,
-            name: user.displayName || user.email.split('@')[0],
-            plan: 'bronze',
-            status: 'pending',
-            createdAt: new Date().toISOString()
-          });
         }
+      }, (error) => {
+        console.error("Database read error:", error);
+        document.getElementById('display-user-name').innerText = user.displayName || user.email || "Account";
+        showToast("Unable to load account data: " + error.message, false);
       });
     };
 
@@ -1105,26 +1131,50 @@
         .catch(err => showToast(err.message, false));
     }
 
-    function handleEmailRegister(e) {
+    async function handleEmailRegister(e) {
       e.preventDefault();
-      const name = document.getElementById('register-name').value;
-      const email = document.getElementById('register-email').value;
+      const name = document.getElementById('register-name').value.trim();
+      const email = document.getElementById('register-email').value.trim();
       const pass = document.getElementById('register-password').value;
-      window.fbAuthMethods.createUserWithEmailAndPassword(window.firebaseAuth, email, pass)
-        .then((cred) => {
-          window.rtdbMethods.set(window.rtdbMethods.ref(window.firebaseDb, 'users/' + cred.user.uid), {
-            name: name,
-            email: email,
-            plan: 'bronze',
-            status: 'pending'
-          });
-        })
-        .catch(err => showToast(err.message, false));
+      try {
+        const cred = await window.fbAuthMethods.createUserWithEmailAndPassword(window.firebaseAuth, email, pass);
+        await window.rtdbMethods.set(window.rtdbMethods.ref(window.firebaseDb, 'users/' + cred.user.uid), {
+          name: name,
+          contactName: name,
+          email: email,
+          phone: "",
+          notes: "",
+          plan: 'bronze',
+          status: 'pending',
+          createdAt: new Date().toISOString()
+        });
+      } catch (err) {
+        showToast(err.message, false);
+      }
     }
 
-    function handleGoogleSignIn() {
-      window.fbAuthMethods.signInWithPopup(window.firebaseAuth, window.googleProvider)
-        .catch(err => showToast(err.message, false));
+    async function handleGoogleSignIn() {
+      try {
+        const result = await window.fbAuthMethods.signInWithPopup(window.firebaseAuth, window.googleProvider);
+        const user = result.user;
+        const userRef = window.rtdbMethods.ref(window.firebaseDb, 'users/' + user.uid);
+        const snap = await window.rtdbMethods.get(userRef);
+        if (!snap.exists()) {
+          const defaultName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+          await window.rtdbMethods.set(userRef, {
+            name: defaultName,
+            contactName: defaultName,
+            email: user.email || "",
+            phone: "",
+            notes: "",
+            plan: 'bronze',
+            status: 'pending',
+            createdAt: new Date().toISOString()
+          });
+        }
+      } catch (err) {
+        showToast(err.message, false);
+      }
     }
 
     function handleSignOut() {
