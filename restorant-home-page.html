@@ -24,7 +24,7 @@
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
     const firebaseConfig = {
-      apiKey: "import.meta.env.VITE_API_KEY",
+      apiKey: "AIzaSyDglPYCIZLTbTOMl7cZvZ_GwPeKzacAfhw",
       authDomain: "vee-fxx.firebaseapp.com",
       databaseURL: "https://vee-fxx-default-rtdb.europe-west1.firebasedatabase.app",
       projectId: "vee-fxx",
@@ -66,8 +66,8 @@
           // Attach RTDB Listener
           if (!rtdbUnsubscribe) {
             rtdbUnsubscribe = onValue(ref(rtdb, 'users'), (snapshot) => {
-              const usersData = snapshot.val();
-              if (usersData && window.renderMasterDashboard) {
+              const usersData = snapshot.val() || {};
+              if (window.renderMasterDashboard) {
                 window.renderMasterDashboard(usersData);
               }
             });
@@ -194,6 +194,26 @@
     .metric-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
     .metric-value { font-family: 'Newsreader', serif; font-size: 38px; font-weight: 400; color: var(--text-dark); line-height: 1; }
+
+    /* Search Bar Styles */
+    .search-container {
+      margin-bottom: 16px;
+    }
+    .email-search-input {
+      width: 100%;
+      padding: 12px 18px;
+      border-radius: 9999px;
+      border: 1px solid var(--card-border);
+      background-color: var(--card-bg);
+      color: var(--text-dark);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 13px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .email-search-input:focus {
+      border-color: var(--accent-green);
+    }
 
     .table-card {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
@@ -370,6 +390,17 @@
       </div>
     </div>
 
+    <!-- Email Search Bar -->
+    <div class="search-container">
+      <input 
+        type="text" 
+        id="emailSearchInput" 
+        class="email-search-input" 
+        placeholder="Search clients by email..." 
+        oninput="filterByEmail()" 
+      />
+    </div>
+
     <!-- Accounts Table -->
     <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">All client subscriptions</h2>
     <div class="table-card">
@@ -464,7 +495,7 @@
     let masterVisiblePasswords = {};
 
     window.renderMasterDashboard = function(users) {
-      localUsers = users;
+      localUsers = users || {};
       const accountsTbody = document.getElementById('accounts-tbody');
       const paymentsTbody = document.getElementById('payments-tbody');
       const botsTbody = document.getElementById('bots-tbody');
@@ -478,8 +509,8 @@
 
       const prices = { pro: 50, bronze: 100, platinum: 250 };
 
-      Object.keys(users).forEach(uid => {
-        const u = users[uid];
+      Object.keys(localUsers).forEach(uid => {
+        const u = localUsers[uid] || {};
         totalAccounts++;
 
         const plan = (u.plan || 'bronze').toLowerCase();
@@ -514,7 +545,7 @@
         const paymentKeys = Object.keys(payments);
         if (paymentKeys.length > 0) {
           paymentKeys.forEach(pId => {
-            const p = payments[pId];
+            const p = payments[pId] || {};
             const payTr = document.createElement('tr');
             payTr.innerHTML = `
               <td>
@@ -551,7 +582,7 @@
           botsTbody.appendChild(botTr);
         } else {
           accKeys.forEach(accId => {
-            const acc = accounts[accId];
+            const acc = accounts[accId] || {};
             const isRunning = isActive && !!acc.botRunning;
             const pwdKey = `${uid}_${accId}`;
             const showPwd = !!masterVisiblePasswords[pwdKey];
@@ -607,7 +638,30 @@
       if (selectedClientUid && localUsers[selectedClientUid]) {
         inspectClient(selectedClientUid);
       }
+
+      // Re-apply active search filter if data updates in real-time
+      filterByEmail();
     };
+
+    function filterByEmail() {
+      const input = document.getElementById('emailSearchInput');
+      if (!input) return;
+      const filter = input.value.toLowerCase();
+      
+      const tbodyIds = ['accounts-tbody', 'payments-tbody', 'bots-tbody'];
+      tbodyIds.forEach(id => {
+        const tbody = document.getElementById(id);
+        if (!tbody) return;
+        const rows = tbody.getElementsByTagName('tr');
+        for (let i = 0; i < rows.length; i++) {
+          const emailEl = rows[i].querySelector('.user-email');
+          if (emailEl) {
+            const emailText = emailEl.textContent || emailEl.innerText;
+            rows[i].style.display = emailText.toLowerCase().includes(filter) ? '' : 'none';
+          }
+        }
+      });
+    }
 
     function inspectClient(uid) {
       selectedClientUid = uid;
@@ -733,7 +787,9 @@
         }
       }
 
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
+      if (Object.keys(updates).length > 0) {
+        window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
+      }
       closeDropdown();
     }
 
