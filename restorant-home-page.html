@@ -18,7 +18,8 @@
       getAuth, 
       onAuthStateChanged, 
       signInWithEmailAndPassword, 
-      signInWithPopup, 
+      signInWithRedirect,
+      getRedirectResult,
       GoogleAuthProvider, 
       signOut 
     } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -50,6 +51,11 @@
 
     let rtdbUnsubscribe = null;
 
+    // Handle redirect return errors if any
+    getRedirectResult(auth).catch((err) => {
+      alert("Google Sign-In failed: " + err.message);
+    });
+
     // Authentication Guard
     onAuthStateChanged(auth, (user) => {
       const loginOverlay = document.getElementById("login-modal-overlay");
@@ -66,8 +72,8 @@
           // Attach RTDB Listener
           if (!rtdbUnsubscribe) {
             rtdbUnsubscribe = onValue(ref(rtdb, 'users'), (snapshot) => {
-              const usersData = snapshot.val() || {};
-              if (window.renderMasterDashboard) {
+              const usersData = snapshot.val();
+              if (usersData && window.renderMasterDashboard) {
                 window.renderMasterDashboard(usersData);
               }
             });
@@ -99,7 +105,7 @@
 
     window.masterLoginGoogle = async function() {
       try {
-        await signInWithPopup(auth, googleProvider);
+        await signInWithRedirect(auth, googleProvider);
       } catch (err) {
         alert("Google Sign-In failed: " + err.message);
       }
@@ -495,7 +501,7 @@
     let masterVisiblePasswords = {};
 
     window.renderMasterDashboard = function(users) {
-      localUsers = users || {};
+      localUsers = users;
       const accountsTbody = document.getElementById('accounts-tbody');
       const paymentsTbody = document.getElementById('payments-tbody');
       const botsTbody = document.getElementById('bots-tbody');
@@ -509,8 +515,8 @@
 
       const prices = { pro: 50, bronze: 100, platinum: 250 };
 
-      Object.keys(localUsers).forEach(uid => {
-        const u = localUsers[uid] || {};
+      Object.keys(users).forEach(uid => {
+        const u = users[uid];
         totalAccounts++;
 
         const plan = (u.plan || 'bronze').toLowerCase();
@@ -545,7 +551,7 @@
         const paymentKeys = Object.keys(payments);
         if (paymentKeys.length > 0) {
           paymentKeys.forEach(pId => {
-            const p = payments[pId] || {};
+            const p = payments[pId];
             const payTr = document.createElement('tr');
             payTr.innerHTML = `
               <td>
@@ -582,7 +588,7 @@
           botsTbody.appendChild(botTr);
         } else {
           accKeys.forEach(accId => {
-            const acc = accounts[accId] || {};
+            const acc = accounts[accId];
             const isRunning = isActive && !!acc.botRunning;
             const pwdKey = `${uid}_${accId}`;
             const showPwd = !!masterVisiblePasswords[pwdKey];
@@ -787,9 +793,7 @@
         }
       }
 
-      if (Object.keys(updates).length > 0) {
-        window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
-      }
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, 'users/' + activeUid), updates);
       closeDropdown();
     }
 
