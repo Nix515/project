@@ -59,22 +59,26 @@
         const userEmail = (user.email || "").toLowerCase();
         
         if (ALLOWED_MASTER_EMAILS.includes(userEmail)) {
+          // Authorized access granted
           if (loginOverlay) loginOverlay.style.display = "none";
           if (userDisplay) userDisplay.textContent = user.email;
 
+          // Attach RTDB Listener
           if (!rtdbUnsubscribe) {
             rtdbUnsubscribe = onValue(ref(rtdb, 'users'), (snapshot) => {
-              const usersData = snapshot.val() || {};
-              if (window.renderMasterDashboard) {
+              const usersData = snapshot.val();
+              if (usersData && window.renderMasterDashboard) {
                 window.renderMasterDashboard(usersData);
               }
             });
           }
         } else {
+          // Unauthorized email logged in
           alert(`Access Restricted!\n\nThe email "${user.email}" is not authorized to access the Master Dashboard.`);
           signOut(auth);
         }
       } else {
+        // Not logged in
         if (loginOverlay) loginOverlay.style.display = "flex";
         if (userDisplay) userDisplay.textContent = "";
         if (rtdbUnsubscribe) {
@@ -84,6 +88,7 @@
       }
     });
 
+    // Expose Authentication Handler Functions
     window.masterLoginEmail = async function(email, password) {
       try {
         await signInWithEmailAndPassword(auth, email, password);
@@ -189,25 +194,6 @@
     .metric-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
     .metric-label { font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase; color: #7A7263; font-weight: 600; }
     .metric-value { font-family: 'Newsreader', serif; font-size: 38px; font-weight: 400; color: var(--text-dark); line-height: 1; }
-
-    .search-container {
-      margin-bottom: 16px;
-    }
-    .email-search-input {
-      width: 100%;
-      padding: 12px 18px;
-      border-radius: 9999px;
-      border: 1px solid var(--card-border);
-      background-color: var(--card-bg);
-      color: var(--text-dark);
-      font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 13px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-    .email-search-input:focus {
-      border-color: var(--accent-green);
-    }
 
     .table-card {
       background-color: var(--card-bg); border: 1px solid var(--card-border);
@@ -384,17 +370,6 @@
       </div>
     </div>
 
-    <!-- Email Search Bar -->
-    <div class="search-container">
-      <input 
-        type="text" 
-        id="emailSearchInput" 
-        class="email-search-input" 
-        placeholder="Search clients by email..." 
-        oninput="filterByEmail()" 
-      />
-    </div>
-
     <!-- Accounts Table -->
     <h2 class="section-title" style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">All client subscriptions</h2>
     <div class="table-card">
@@ -410,6 +385,7 @@
             </tr>
           </thead>
           <tbody id="accounts-tbody">
+            <!-- Dynamically populated from Firebase -->
           </tbody>
         </table>
       </div>
@@ -431,6 +407,7 @@
             </tr>
           </thead>
           <tbody id="payments-tbody">
+            <!-- Dynamically populated payment submissions -->
           </tbody>
         </table>
       </div>
@@ -440,6 +417,7 @@
     <div id="selected-client-details" class="details-panel" style="display:none;">
       <h2 style="font-family:'Newsreader',serif; font-size:22px; margin-bottom:12px;">Selected Client Details</h2>
       <div id="client-info-content" style="font-size:13px; line-height:1.8; color:#0D331D;">
+        <!-- Filled when client email is clicked -->
       </div>
     </div>
 
@@ -459,6 +437,7 @@
             </tr>
           </thead>
           <tbody id="bots-tbody">
+            <!-- Dynamically populated from Firebase with clear passwords -->
           </tbody>
         </table>
       </div>
@@ -516,6 +495,7 @@
           pendingCount++;
         }
 
+        // Main account subscription row
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td>
@@ -529,27 +509,25 @@
         `;
         accountsTbody.appendChild(tr);
 
+        // Payment history rows
         const payments = u.payments || {};
         const paymentKeys = Object.keys(payments);
         if (paymentKeys.length > 0) {
           paymentKeys.forEach(pId => {
             const p = payments[pId];
-            const pPlan = (p.plan || plan).toLowerCase();
-            const pAmount = p.amount || prices[pPlan] || 100;
-            const pActive = p.status === 'active';
             const payTr = document.createElement('tr');
             payTr.innerHTML = `
               <td>
                 <div class="user-name">${u.name || 'User'}</div>
                 <div class="user-email" onclick="inspectClient('${uid}')">${u.email || ''}</div>
               </td>
-              <td><span class="pill pill-${pPlan}">${pPlan.toUpperCase()}</span></td>
-              <td style="font-weight:600;">$${pAmount}</td>
+              <td><span class="pill pill-${(p.plan || plan).toLowerCase()}">${(p.plan || plan).toUpperCase()}</span></td>
+              <td style="font-weight:600;">$${p.amount || prices[plan] || 0}</td>
               <td>${new Date(p.date || Date.now()).toLocaleString()}</td>
-              <td><span class="pill ${pActive ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
+              <td><span class="pill ${p.status === 'active' ? 'pill-status-active' : 'pill-status-pending'}">${p.status || 'pending'}</span></td>
               <td>
                 <button class="btn-start" style="padding:4px 10px; font-size:11px;" onclick="approvePayment('${uid}', '${pId}')">
-                  ${pActive ? 'Confirmed' : 'Confirm Payment'}
+                  Confirm Payment
                 </button>
               </td>
             `;
@@ -557,6 +535,7 @@
           });
         }
 
+        // Broker bot accounts
         const accounts = u.accounts || {};
         const accKeys = Object.keys(accounts);
 
@@ -628,29 +607,7 @@
       if (selectedClientUid && localUsers[selectedClientUid]) {
         inspectClient(selectedClientUid);
       }
-
-      filterByEmail();
     };
-
-    function filterByEmail() {
-      const input = document.getElementById('emailSearchInput');
-      if (!input) return;
-      const filter = input.value.toLowerCase();
-      
-      const tbodyIds = ['accounts-tbody', 'payments-tbody', 'bots-tbody'];
-      tbodyIds.forEach(id => {
-        const tbody = document.getElementById(id);
-        if (!tbody) return;
-        const rows = tbody.getElementsByTagName('tr');
-        for (let i = 0; i < rows.length; i++) {
-          const emailEl = rows[i].querySelector('.user-email');
-          if (emailEl) {
-            const emailText = emailEl.textContent || emailEl.innerText;
-            rows[i].style.display = emailText.toLowerCase().includes(filter) ? '' : 'none';
-          }
-        }
-      });
-    }
 
     function inspectClient(uid) {
       selectedClientUid = uid;
@@ -739,15 +696,12 @@
 
         if (u && u.payments) {
           Object.keys(u.payments).forEach(pId => {
-            const p = u.payments[pId];
-            if (!p.status || p.status === 'pending') {
-              const targetPlan = (p.plan || u.plan || 'bronze').toLowerCase();
-              window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
-                status: 'active',
-                plan: targetPlan,
-                amount: p.amount || prices[targetPlan] || 100
-              });
-            }
+            const targetPlan = u.plan || 'bronze';
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+              status: 'active',
+              plan: targetPlan,
+              amount: prices[targetPlan] || 100
+            });
           });
         }
       }
@@ -771,13 +725,10 @@
 
         if (u && u.payments) {
           Object.keys(u.payments).forEach(pId => {
-            const p = u.payments[pId];
-            if (!p.status || p.status === 'pending') {
-              window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
-                plan: newPlan,
-                amount: newPrice
-              });
-            }
+            window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${activeUid}/payments/${pId}`), {
+              plan: newPlan,
+              amount: newPrice
+            });
           });
         }
       }
@@ -793,18 +744,15 @@
 
       const prices = { pro: 50, bronze: 100, platinum: 250 };
       const u = localUsers[uid];
-      const p = (u && u.payments && u.payments[pId]) ? u.payments[pId] : {};
-      const targetPlan = (p.plan || (u && u.plan) || 'bronze').toLowerCase();
-      const targetAmount = p.amount || prices[targetPlan] || 100;
+      const targetPlan = (u && u.plan) ? u.plan.toLowerCase() : 'bronze';
 
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/payments/${pId}`), { 
         status: 'active',
         plan: targetPlan,
-        amount: targetAmount
+        amount: prices[targetPlan] || 100
       });
       
       window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}`), { 
-        plan: targetPlan,
         status: 'active',
         startedDate: now.toISOString(),
         renewalDate: renewal.toISOString()
@@ -814,10 +762,11 @@
     function toggleBot(uid, accId, newState) {
       const u = localUsers[uid];
       if (!u || u.status !== 'active') return;
-      window.rtdbMethods.update(window.rtdbMethods.ref(window.firebaseDb, `users/${uid}/accounts/${accId}`), {
+      window.rtdbMethods.update(window.rtdbMethods.ref(window.rtdb, `users/${uid}/accounts/${accId}`), {
         botRunning: newState
       });
     }
   </script>
 </body>
 </html>
+
